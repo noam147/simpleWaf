@@ -1,15 +1,19 @@
 import mysql.connector #pip install mysql-connector-python
 
 ERROR_IP_ADDRESS = "0.0.0.0"
-def print_table_values(table_name:str):
-    """func for debug"""
-
-    db_config = {
+db_config = {
         "host": "localhost",
         "user": "user1",
         "password": "12345678",
         "database": "wafDataBase"
     }
+#general tables:
+
+def drop_table(table_name:str):
+    query = "DROP TABLE IF EXISTS " + table_name
+    exec_command(query)
+def print_table_values(table_name:str):
+    """func for debug"""
 
     query = "SELECT * FROM "+table_name
 
@@ -59,15 +63,15 @@ def exec_command(command:str,args_for_command:tuple=()) -> list:
     try:
         # Connect to the database
         conn = mysql.connector.connect(**db_config)
-        print("Connection established.")
+        #print("Connection established.")
         cursor = conn.cursor()
         cursor.execute(command,args_for_command)
         result = cursor.fetchall()  # get the query results
         conn.commit()
-        print("execute command.")
+        #print("execute command.")
     except mysql.connector.Error as e:
         print(f"Database error: {e}")
-        return []
+        return []#maybe add an error code that the func will know that error accured
     except Exception as e:
         print(e)
         return []
@@ -78,15 +82,16 @@ def exec_command(command:str,args_for_command:tuple=()) -> list:
 
 def create_tables()->None:
 
+#ip_len = len(ipv6)+1
     websites_table = """
     CREATE TABLE IF NOT EXISTS websites_ip (
     host_name VARCHAR(255) UNIQUE,
-    ip_address TEXT    
+    ip_address VARCHAR(25)    
     )
     """
     attackers_table = """
         CREATE TABLE IF NOT EXISTS attackers (
-            attacker_ip VARCHAR(13) UNIQUE,
+            attacker_ip VARCHAR(25) UNIQUE,
             date_to_free DATE
         )
         """
@@ -134,7 +139,20 @@ def insert_into_websites_ip(host_name:str,ip_add:str)->None:
     args = (host_name,ip_add)
     exec_command(command,args)
 def update_website_ip(host_name:str,ip_add:str)->None:
-    pass
+    command = """
+                  UPDATE websites_ip SET ip_address = %s where host_name = %s
+                  """
+    args = (ip_add, host_name)
+    exec_command(command, args)
+def special_insert_or_update_website_ip(host_name:str,ip_add:str)->None:
+    """inserts new website or updates the ip address if the website already exists."""
+    command = """
+        INSERT INTO websites_ip (host_name, ip_address)
+        VALUES (%s, %s)
+        ON DUPLICATE KEY UPDATE ip_address = VALUES(ip_address)"""
+    args = (host_name, ip_add)
+    exec_command(command,args)
+
 def get_ip_address_by_host_name(host_name:str)->str:
     command = """
         SELECT ip_address FROM websites_ip where host_name = %s
