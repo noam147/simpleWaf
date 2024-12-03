@@ -4,6 +4,7 @@ import waf_db
 class TestDB(unittest.TestCase):
     def test_attackers_table(self):
         example_ip = "111.111.111.112"
+
         example_date = "2025-01-01"
         #test insertion:
         waf_db.insert_into_attackers(example_ip,example_date)
