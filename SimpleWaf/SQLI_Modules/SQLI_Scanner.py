@@ -3,7 +3,7 @@ from SQLI_Scanner_Utils import find_sqli,SqliStrictness
 
 class SqliScanner(IAttack_Scanner):
     @staticmethod
-    def scann(data: str):
+    def scan(data: str) -> bool:
         # get info from db
         strictness = SqliStrictness.STRICT
         blocked_characters = ''
