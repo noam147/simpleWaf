@@ -2,6 +2,11 @@ import unittest
 import waf_db
 
 class TestDB(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # This runs once before all tests
+        waf_db.create_tables()
+
     def test_attackers_table(self):
         example_ip = "111.111.111.112"
 
