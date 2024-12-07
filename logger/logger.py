@@ -2,6 +2,10 @@ from abc import ABC, abstractmethod
 from typing import List
 import json
 import logging
+import os
+
+INNER_PATH = "logs\\inner"
+LOG_FILE_NAME = "waf_system.log"
 
 
 class LogInfo:
@@ -35,9 +39,16 @@ class _Ilogger(ABC):
 
 
 class _InnerLogger(_Ilogger):
+
+    @staticmethod
+    def _setup():
+        os.makedirs(INNER_PATH, exist_ok=True)
+
     def __init__(self):
+        _InnerLogger._setup()
+        self.log_file_path = f"{INNER_PATH}\\{LOG_FILE_NAME}"
         self.logger = logging.getLogger("InnerLogger")
-        handler = logging.FileHandler("waf_system.log")
+        handler = logging.FileHandler(self.log_file_path)
         handler.setFormatter(logging.Formatter('%(message)s'))
         self.logger.addHandler(handler)
         self.logger.setLevel(logging.INFO)
@@ -46,7 +57,7 @@ class _InnerLogger(_Ilogger):
         self.logger.info(json.dumps(log_info.data_to_dict()))
 
     def get_logged_data(self):
-        with open("waf_system.log", "r") as file:
+        with open(self.log_file_path, "r") as file:
             return file.read()
 
 
