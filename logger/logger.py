@@ -1,13 +1,68 @@
-class _Ilogger:
+from abc import ABC, abstractmethod
+
+from typing import List
+
+
+class LogInfo:
+    def __init__(self, server_domain_name: str, ip: str, attack_type: str, timeout: str, timestamp: str):
+        self.server_domain_name = server_domain_name
+        self.ip = ip
+        self.attack_type = attack_type
+        self.timeout = timeout
+        self.timestamp = timestamp
+
+    def data_to_dict(self):
+        return \
+            {
+                "timestamp": self.timestamp,
+                "domain": self.server_domain_name,
+                "ip": self.ip,
+                "attack type": self.attack_type,
+                "timeout": self.timeout
+            }
+
+
+class _Ilogger(ABC):
+
+    @abstractmethod
+    def log(self, log_info: LogInfo):
+        pass
+
+    @abstractmethod
+    def get_logged_data(self) -> List[LogInfo]:
+        pass
+
+
+class _InnerLogger(_Ilogger):
     def __init__(self):
-        __setup()
-
-    def _setup(self):
         pass
 
-    def log(self):
+    def log(self, log_info: LogInfo):
         pass
 
-    def get_logged_data(self):
+    def get_logged_data(self) -> List[LogInfo]:
         pass
 
+
+class _OuterLogger(_Ilogger):
+    def __init__(self):
+        pass
+
+    def log(self, log_info: LogInfo):
+        pass
+
+    def get_logged_data(self) -> List[LogInfo]:
+        pass
+
+
+class Logger(_Ilogger):
+    def __init__(self):
+        self.innerLoger = _InnerLogger()
+        self.outerLoger = _OuterLogger()
+
+    def log(self, log_info: LogInfo):
+        self.innerLoger.log(log_info)
+        self.outerLoger.log(log_info)
+
+    def get_logged_data(self) -> List[LogInfo]:
+        return self.innerLoger.get_logged_data()
