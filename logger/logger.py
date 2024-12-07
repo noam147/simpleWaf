@@ -1,11 +1,11 @@
-from abc import ABC, abstractmethod
 from typing import List
 import json
 import logging
 import os
 
-INNER_PATH = "logs\\inner"
-LOG_FILE_NAME = "waf_system.log"
+INNER_LOG_PATH = "logs\\inner"
+OUTER_LOG_PATH = "logs\\outer"
+INNER_LOG_FILE_NAME = "waf_system.log"
 
 
 class LogInfo:
@@ -27,26 +27,12 @@ class LogInfo:
             }
 
 
-class _Ilogger(ABC):
-
-    @abstractmethod
-    def log(self, log_info: LogInfo):
-        pass
-
-    @abstractmethod
-    def get_logged_data(self) -> List[LogInfo]:
-        pass
-
-
-class _InnerLogger(_Ilogger):
-
-    @staticmethod
-    def _setup():
-        os.makedirs(INNER_PATH, exist_ok=True)
+class _InnerLogger:
 
     def __init__(self):
-        _InnerLogger._setup()
-        self.log_file_path = f"{INNER_PATH}\\{LOG_FILE_NAME}"
+        os.makedirs(INNER_LOG_PATH, exist_ok=True)
+
+        self.log_file_path = f"{INNER_LOG_PATH}\\{INNER_LOG_FILE_NAME}"
         self.logger = logging.getLogger("InnerLogger")
         handler = logging.FileHandler(self.log_file_path)
         handler.setFormatter(logging.Formatter('%(message)s'))
@@ -61,32 +47,57 @@ class _InnerLogger(_Ilogger):
             return file.read()
 
 
-class _OuterLogger(_Ilogger):
+class _OuterLogger:
     def __init__(self):
-        pass
+        self.log_dir = OUTER_LOG_PATH
+        os.makedirs(self.log_dir, exist_ok=True)
+        self.loggers = {}
 
-    def log(self, log_info: LogInfo):
-        pass
+    def _get_logger(self, website_name):
+        if website_name not in self.loggers:
+            logger = logging.getLogger(f"OuterLogger_{website_name}")
+            handler = logging.FileHandler(f"{self.log_dir}/{website_name}.log")
+            handler.setFormatter(logging.Formatter('%(message)s'))  # JSON format
+            logger.addHandler(handler)
+            logger.setLevel(logging.INFO)
+            self.loggers[website_name] = logger
+        return self.loggers[website_name]
 
-    def get_logged_data(self) -> List[LogInfo]:
-        pass
+    def log(self, website_name, message):
+        logger = self._get_logger(website_name)
+        logger.info(json.dumps(message.data_to_dict()))
+
+    def get_logged_data(self, website_name):
+        log_file = f"{self.log_dir}/{website_name}.log"
+        if os.path.exists(log_file):
+            with open(log_file, "r") as file:
+                return file.read()
+        return None
 
 
-class Logger(_Ilogger):
+class Logger:
     def __init__(self):
         self.innerLoger = _InnerLogger()
         self.outerLoger = _OuterLogger()
 
     def log(self, log_info: LogInfo):
         self.innerLoger.log(log_info)
-        self.outerLoger.log(log_info)
+        self.outerLoger.log(log_info.data_to_dict()["domain"], log_info)
 
-    def get_logged_data(self) -> List[LogInfo]:
-        return self.innerLoger.get_logged_data()
+    def get_logged_data(self, website: str = "") -> str:
+        """
+        the function fetches a log file
+        :param website: the name of the website the log is documenting -> str
+        if no name is entered it fetches the inner log file -> None/""
+        :return: the data from the log file -> str
+        """
+        if website == "":
+            return self.innerLoger.get_logged_data()
+        return self.outerLoger.get_logged_data(website)
 
 
 if __name__ == "__main__":
-    iner = _InnerLogger()
-    data = LogInfo("mysite.com", "123.233.32.432","XSS","32d","2024-12-05T16:30:00Z")
-    iner.log(data)
-    print(iner.get_logged_data())
+    logger = Logger()
+    data = LogInfo("mysite.com", "123.233.32.432", "XSS", "32d", "2024-12-05T16:30:00Z")
+    logger.log(data)
+    print(logger.get_logged_data())
