@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
-
 from typing import List
+import json
+import logging
 
 
 class LogInfo:
@@ -35,13 +36,18 @@ class _Ilogger(ABC):
 
 class _InnerLogger(_Ilogger):
     def __init__(self):
-        pass
+        self.logger = logging.getLogger("InnerLogger")
+        handler = logging.FileHandler("waf_system.log")
+        handler.setFormatter(logging.Formatter('%(message)s'))
+        self.logger.addHandler(handler)
+        self.logger.setLevel(logging.INFO)
 
     def log(self, log_info: LogInfo):
-        pass
+        self.logger.info(json.dumps(log_info.data_to_dict()))
 
-    def get_logged_data(self) -> List[LogInfo]:
-        pass
+    def get_logged_data(self):
+        with open("waf_system.log", "r") as file:
+            return file.read()
 
 
 class _OuterLogger(_Ilogger):
@@ -66,3 +72,10 @@ class Logger(_Ilogger):
 
     def get_logged_data(self) -> List[LogInfo]:
         return self.innerLoger.get_logged_data()
+
+
+if __name__ == "__main__":
+    iner = _InnerLogger()
+    data = LogInfo("mysite.com", "123.233.32.432","XSS","32d","2024-12-05T16:30:00Z")
+    iner.log(data)
+    print(iner.get_logged_data())
