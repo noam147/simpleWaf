@@ -1,5 +1,5 @@
 
-from flask import Flask, request, jsonify, abort
+from flask import Flask, request, jsonify, abort, Response
 import requests
 from urllib.parse import urlparse, urlencode
 import DB_Wrapper
@@ -8,7 +8,9 @@ from multidict import MultiDict
 from werkzeug.datastructures import FileStorage
 
 app = Flask(__name__)
+PORT_APP = 5000
 
+EXAMPLE_WEBSITE_PORT = 5001
 
 def _see_params():
     """
@@ -33,6 +35,8 @@ def _see_params():
     user_ip = request.remote_addr
     print("user ip: " + user_ip)
     return
+def is_attacker(ip_add:str)->bool:
+    return DB_Wrapper.is_ip_blocked(ip_add)
 
 
 @app.route('/', defaults={'path': ''}, methods=['GET', 'POST'])
@@ -43,19 +47,30 @@ def process_request(path):
     :param path: the path of the request sent
     :return: the response to send
     """
+    #check if user is attacker:
+    ip_address = request.environ['REMOTE_ADDR']
+    print(ip_address)
+    if is_attacker(ip_address):
+        print("attacker found!")
+        abort(404)
+
     # Extract website address and get IP from DB
-    website_addr = urlparse(request.base_url).hostname
-    website_ip = DB_Wrapper.getWebsiteIp(website_addr)
-    print(str(website_addr) + " - " + str(website_ip))
-    if website_ip is None:
-        print("abort")
+    host_name = urlparse(request.base_url).hostname
+    #host_name = request.headers.get("Host", "")
+    website_ip = DB_Wrapper.get_ip_address_by_host_name(host_name)
+
+    print(str(host_name) + " - " + str(website_ip))
+    if website_ip is None or website_ip == DB_Wrapper.ERROR_IP_ADDRESS:
+        print("abort- website not exist")
         abort(404)
     ### for debug ###
     _see_params()
 
     # Construct the target URL
     ### code for testing ###
-    new_url = f"{request.scheme}://{website_ip}:5001/{path}"
+    new_url = f"{request.scheme}://{website_ip}:{EXAMPLE_WEBSITE_PORT}/{path}"
+    #new_url = f"https://{website_ip}/{path}" - need to check when to use https
+    ### flask working on http- but most websites on https ###
 
     ### code for production ###
     # new_url = f"{request.scheme}://{website_ip}/{path}"
@@ -71,12 +86,28 @@ def process_request(path):
 
     # Forward the request
     if request.method == 'GET':
-        response = requests.get(new_url)
-    else:
+        try:
+            response = requests.get(new_url)
+        except Exception as e:
+            print(e)
+            abort(404)
+    elif request.method == 'POST':
         response = requests.post(new_url, data=request.data)
+    else:
+        abort(500)#we are not handling other requests right now
 
+    #maybe this is the way to get back responses to client?
+    """response_to_client = Response(
+        response.content,
+        status=response.status_code,
+        headers=dict(response.headers)
+    )
+    return response_to_client"""
+    #return response
+    ### there are some headers that causing flask not to work ###
+    #for example: Content-Encoding: gzip, Transfer-Encoding: chunked
     return response.content, response.status_code, response.headers.items()
 
 
 if __name__ == "__main__":
-    app.run(port=5000)
+    app.run(port=PORT_APP)
