@@ -7,11 +7,17 @@ from jsonpatch import multidict
 from multidict import MultiDict
 from werkzeug.datastructures import FileStorage
 
+from SearchAttackHelper import SearchAttacks
+
+
+
+
 app = Flask(__name__)
 PORT_APP = 5000
 
 EXAMPLE_WEBSITE_PORT = 5001
 
+ATTACK_FOUND_CODE = 400
 def _see_params():
     """
     the function is meant for debug
@@ -66,10 +72,16 @@ def process_request(path):
     ### for debug ###
     _see_params()
 
+    ### check attacks ###
+    current = SearchAttacks(request)
+    if current.search_attacks():
+        abort(ATTACK_FOUND_CODE)#attack found
+        #DB_Wrapper.insert_into_attackers()#need to insert into table
+
     # Construct the target URL
     ### code for testing ###
     new_url = f"{request.scheme}://{website_ip}:{EXAMPLE_WEBSITE_PORT}/{path}"
-    #new_url = f"https://{website_ip}/{path}" - need to check when to use https
+    #new_url = f"https://{website_ip}/{path}"# - need to check when to use https
     ### flask working on http- but most websites on https ###
 
     ### code for production ###
@@ -87,12 +99,12 @@ def process_request(path):
     # Forward the request
     if request.method == 'GET':
         try:
-            response = requests.get(new_url)
+            response = requests.get(new_url,timeout=1)
         except Exception as e:
             print(e)
             abort(404)
     elif request.method == 'POST':
-        response = requests.post(new_url, data=request.data)
+        response = requests.post(new_url, data=request.data,timeout=1)
     else:
         abort(500)#we are not handling other requests right now
 

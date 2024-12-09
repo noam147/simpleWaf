@@ -11,6 +11,7 @@ def t1est_1()->bool:
     }
     response = requests.get(url,headers=headers)
     print(response)
+
 def t1est_2()->bool:
     not_existing_web_host_name = "my_not_existing_site.com"
     headers = {
@@ -19,8 +20,34 @@ def t1est_2()->bool:
 
     response = requests.get(url,headers=headers)
     print(response)
+def t1est_3()->bool:
+    #does not work at this moment ->
+    #need to put https in url, and some headres are prablomatic
+    existing_web_host_name = "dns.google"
+    headers = {
+        "Host": existing_web_host_name
+    }
+    #malicus data:
+    data = {
+        "user":" 'or 1=1'"
+    }
+    response = requests.post(url,headers=headers,json=data)
+    print(response)
+def t1est_4()->bool:
+    #does not work at this moment ->
+    #need to put https in url, and some headres are prablomatic
+    existing_web_host_name = "dns.google?user='or 1=1'"
+    headers = {
+        "Host": existing_web_host_name
+    }
+
+    response = requests.get(url,headers=headers)
+    print(response)
+    assert response.status_code == 400
 def activate_all_tests():
     t1est_1()
     t1est_2()
+    t1est_3()
+    t1est_4()
 if __name__ == '__main__':
     activate_all_tests()
