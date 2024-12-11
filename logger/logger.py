@@ -52,7 +52,13 @@ class _OuterLogger:
         self.log_dir = OUTER_LOG_PATH
         os.makedirs(self.log_dir, exist_ok=True)
         self.loggers = {}
-
+    def _get_website_name_without_speacial_characters(self,website_name:str)->str:
+        """func is for preventing attackers to do file traversal into our log system and get classified data"""
+        new_website_name = ""
+        for letter in website_name:
+            if letter.isalpha() or letter.isdigit():
+                new_website_name+=letter
+        return new_website_name
     def _get_logger(self, website_name):
         if website_name not in self.loggers:
             logger = logging.getLogger(f"OuterLogger_{website_name}")
