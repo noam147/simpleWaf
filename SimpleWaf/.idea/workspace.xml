@@ -4,7 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
+<<<<<<< HEAD
     <list default="true" id="04c03bd5-bc83-4f9d-897f-64302265e54a" name="Changes" comment="" />
+=======
+    <list default="true" id="385077cd-7e3d-433f-b6c8-a7aa8c9b9634" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/Atest_routing.py" beforeDir="false" afterPath="$PROJECT_DIR$/Atest_routing.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+    </list>
+>>>>>>> 03e8ac061af432741d7f75cb1327124ecda24540
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -21,9 +28,15 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
   <component name="ProjectColorInfo">{
+<<<<<<< HEAD
   &quot;associatedIndex&quot;: 3
 }</component>
   <component name="ProjectId" id="2q4YOBzdpWsHnU2sRV1H8BQSBwg" />
+=======
+  &quot;associatedIndex&quot;: 8
+}</component>
+  <component name="ProjectId" id="2pnQbhw1KqZTJrYE05PlrCUxEnb" />
+>>>>>>> 03e8ac061af432741d7f75cb1327124ecda24540
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -32,6 +45,7 @@
   &quot;keyToString&quot;: {
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+<<<<<<< HEAD
     &quot;git-widget-placeholder&quot;: &quot;DbWrapperUpdate&quot;,
     &quot;last_opened_file_path&quot;: &quot;C:/Users/Magshimim/Desktop/WAF_Project/simplewaf/SimpleWaf&quot;,
     &quot;settings.editor.selected.configurable&quot;: &quot;configurable.group.tools&quot;
@@ -42,20 +56,29 @@
       <recent name="C:\Users\Magshimim\Desktop\WAF_Project\simplewaf\SimpleWaf\Lib\site-packages\_distutils_hack" />
     </key>
   </component>
+=======
+    &quot;git-widget-placeholder&quot;: &quot;connectRoutingWithDB&quot;
+  }
+}</component>
+>>>>>>> 03e8ac061af432741d7f75cb1327124ecda24540
   <component name="RunManager">
-    <configuration name="main" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+    <configuration name="SearchAttackHelper" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="SimpleWaf" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
+<<<<<<< HEAD
       <option name="SDK_HOME" value="C:\Users\Magshimim\PycharmProjects\pythonProject\venv\Scripts\python.exe" />
+=======
+      <option name="SDK_HOME" value="" />
+>>>>>>> 03e8ac061af432741d7f75cb1327124ecda24540
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="false" />
+      <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="C:\Users\Magshimim\Desktop\WAF_Project\simplewaf\SimpleWaf\SQLI_Modules\main.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/SearchAttackHelper.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -64,27 +87,21 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.SearchAttackHelper" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="04c03bd5-bc83-4f9d-897f-64302265e54a" name="Changes" comment="" />
-      <created>1732728129211</created>
+      <changelist id="385077cd-7e3d-433f-b6c8-a7aa8c9b9634" name="Changes" comment="" />
+      <created>1733399432678</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1732728129211</updated>
+      <updated>1733399432678</updated>
     </task>
     <servers />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/SQLI_Scanner_Utils.py</url>
-          <line>51</line>
-          <option name="timeStamp" value="1" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
 </project>
