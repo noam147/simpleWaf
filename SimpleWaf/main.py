@@ -9,7 +9,7 @@ from werkzeug.datastructures import FileStorage
 
 from SearchAttackHelper import SearchAttacks
 
-
+from vars_for_global_use import *
 
 
 app = Flask(__name__)
@@ -17,10 +17,7 @@ PORT_APP = 5000
 
 EXAMPLE_WEBSITE_PORT = 5001
 
-ATTACK_FOUND_CODE = 400#if the msg of the user contains attacks
-ATTACKER_CODE = 401#if the user is attacker
-WEBSITE_NOT_EXIST_CODE = 402#if host name not in data base
-WEBSITE_NOT_RESPONDING_CODE = 405#if the server did not respond
+
 
 def _see_params():
     """

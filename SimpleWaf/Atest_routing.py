@@ -1,4 +1,6 @@
 import requests
+from vars_for_global_use import *
+
 WAF_IP_ADDRESS = "127.0.0.1"
 PORT = 5000
 url = f"http://{WAF_IP_ADDRESS}:{PORT}"
@@ -11,7 +13,7 @@ def t1est_1()->bool:
     }
     response = requests.get(url,headers=headers)
     print(response)
-    assert response.status_code == 405
+    assert response.status_code == WEBSITE_NOT_RESPONDING_CODE
 def t1est_2()->bool:
     not_existing_web_host_name = "my_not_existing_site.com"
     headers = {
@@ -20,7 +22,7 @@ def t1est_2()->bool:
 
     response = requests.get(url,headers=headers)
     print(response)
-    assert response.status_code == 402
+    assert response.status_code == WEBSITE_NOT_EXIST_CODE
 def t1est_3()->bool:
     #does not work at this moment ->
     #need to put https in url, and some headres are prablomatic
@@ -34,7 +36,7 @@ def t1est_3()->bool:
     }
     response = requests.post(url,headers=headers,json=data)
     print(response)
-    assert response.status_code == 400
+    assert response.status_code == ATTACK_FOUND_CODE
 def t1est_4()->bool:
     #does not work at this moment ->
     #need to put https in url, and some headres are prablomatic
@@ -45,11 +47,12 @@ def t1est_4()->bool:
 
     response = requests.get(url,headers=headers)
     print(response)
-    assert response.status_code == 400
+    assert response.status_code == ATTACK_FOUND_CODE
 def activate_all_tests():
     t1est_1()
     t1est_2()
     t1est_3()
     t1est_4()
+    print("test completed successfully!")
 if __name__ == '__main__':
     activate_all_tests()

@@ -2,6 +2,7 @@ import mysql.connector #pip install mysql-connector-python
 import hashlib
 ERROR_IP_ADDRESS = "0.0.0.0"
 ERROR_WITH_DB_EXEC_COMMAND_CODE = [-1]
+DEFAULT_STARTING_SCORE = 1
 db_config = {
         "host": "localhost",
         "user": "user1",
@@ -83,11 +84,11 @@ def exec_command(command:str,args_for_command:tuple=()) -> list:
 
 def create_tables()->None:
 
-#ip_len = len(ipv6)+1
+#ip_len = len(ipv6) = 39
     websites_table = """
     CREATE TABLE IF NOT EXISTS websites_ip (
     host_name VARCHAR(255) UNIQUE,
-    ip_address VARCHAR(25)    
+    ip_address VARCHAR(39)    
     )
     """
     website_login = """
@@ -100,16 +101,47 @@ def create_tables()->None:
     """
     attackers_table = """
         CREATE TABLE IF NOT EXISTS attackers (
-            attacker_ip VARCHAR(25) UNIQUE,
+            attacker_ip VARCHAR(39) UNIQUE,
             date_to_free DATE
+        )
+        """
+    #decimal(3,1) = up to 999 with 1 number of the dot
+    #example: 543.2, 13.6
+    attackers_score_table = """
+        CREATE TABLE IF NOT EXISTS attackers_score (
+            attacker_ip VARCHAR(39) UNIQUE,
+            current_score DECIMAL(3,1)
         )
         """
     #date_to_free= (yyyy-mm-dd) - string
     exec_command(websites_table)
     exec_command(website_login)
     exec_command(attackers_table)
+    exec_command(attackers_score_table)
     return
-
+#attackers score:
+def special_insert_or_update_attackers_score(attacker_ip_add:str)->None:
+    """inserts new attacker or updates the score if the attacker already exists."""
+    command = f"""
+        INSERT INTO attackers_score (attacker_ip, current_score)
+        VALUES (%s,{DEFAULT_STARTING_SCORE})
+        ON DUPLICATE KEY UPDATE current_score = current_score+0.2"""
+    args = (attacker_ip_add,)
+    exec_command(command,args)
+def get_score_of_attacker(attacker_ip_add:str) -> float:
+    """get current score of attacker
+        NOTE: need to insert the attacker to the db and only after
+            to check his score"""
+    command = """
+        SELECT * FROM attackers_score where attacker_ip = %s
+        """
+    args = (attacker_ip_add,)
+    result:list = exec_command(command, args)
+    if len(result) == 1:
+        attacker_details = result[0]
+        current_score = attacker_details[1]
+        return current_score
+    
 #attackers:
 def insert_into_attackers(attacker_ip:str,date_to_free:str)->None:
 
