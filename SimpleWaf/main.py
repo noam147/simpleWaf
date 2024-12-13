@@ -6,6 +6,7 @@ import DB_Wrapper
 from jsonpatch import multidict
 from multidict import MultiDict
 from werkzeug.datastructures import FileStorage
+import SQLI_Modules.SQLI_Scanner as SQLI_s
 
 app = Flask(__name__)
 
@@ -64,10 +65,6 @@ def process_request(path):
     if request.query_string:
         query_string = urlencode(request.args.to_dict())
         new_url = f"{new_url}?{query_string}"
-
-    host_header = request.headers.get('host')
-    if host_header == '':
-        return jsonify({"error": "Bad Request", "message": "Host header is missing"}), 400
 
     # Forward the request
     if request.method == 'GET':
