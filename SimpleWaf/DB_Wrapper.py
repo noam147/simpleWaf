@@ -120,14 +120,21 @@ def create_tables()->None:
     exec_command(attackers_score_table)
     return
 #attackers score:
-def special_insert_or_update_attackers_score(attacker_ip_add:str)->None:
+def special_insert_or_update_attackers_score(attacker_ip_add:str,amount_to_add:float = 0.2)->None:
     """inserts new attacker or updates the score if the attacker already exists."""
     command = f"""
         INSERT INTO attackers_score (attacker_ip, current_score)
         VALUES (%s,{DEFAULT_STARTING_SCORE})
-        ON DUPLICATE KEY UPDATE current_score = current_score+0.2"""
+        ON DUPLICATE KEY UPDATE current_score = current_score + {amount_to_add}"""
     args = (attacker_ip_add,)
     exec_command(command,args)
+
+def reset_score_of_attacker(attacker_ip_add:str,initial_score:float=1.0):
+    command = """
+            UPDATE attackers_score SET current_score = %s where attacker_ip = %s
+            """
+    args = (initial_score,attacker_ip_add)
+    exec_command(command, args)
 def get_score_of_attacker(attacker_ip_add:str) -> float:
     """get current score of attacker
         NOTE: need to insert the attacker to the db and only after
@@ -137,11 +144,11 @@ def get_score_of_attacker(attacker_ip_add:str) -> float:
         """
     args = (attacker_ip_add,)
     result:list = exec_command(command, args)
-    if len(result) == 1:
+    if len(result) == 1 and result != ERROR_WITH_DB_EXEC_COMMAND_CODE:
         attacker_details = result[0]
         current_score = attacker_details[1]
-        return current_score
-    
+        return float(current_score)#we want type float, not dechimal
+
 #attackers:
 def insert_into_attackers(attacker_ip:str,date_to_free:str)->None:
 
@@ -151,6 +158,25 @@ def insert_into_attackers(attacker_ip:str,date_to_free:str)->None:
            """
     args = (attacker_ip,date_to_free)
     exec_command(command,args)
+def special_insert_or_update_attackers_table(attacker_ip:str,date_to_free:str)->None:
+    command = """
+               INSERT INTO attackers (attacker_ip, date_to_free) 
+               VALUES (%s, %s)
+               ON DUPLICATE KEY UPDATE date_to_free = %s
+               """
+    args = (attacker_ip, date_to_free, date_to_free)
+    exec_command(command, args)
+def get_date_to_free_of_attacker(attacker_ip:str) -> str:
+    command = """
+           SELECT * FROM attackers where attacker_ip = %s
+           """
+    args = (attacker_ip,)
+    result: list = exec_command(command, args)
+    if len(result) == 1 and result != ERROR_WITH_DB_EXEC_COMMAND_CODE:
+        attacker_details = result[0]
+        date_to_free = attacker_details[1]
+        return date_to_free
+    return ""
 def delete_attacker(attacker_ip:str)->None:
 
     command = """
