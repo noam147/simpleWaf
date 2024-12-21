@@ -1,5 +1,5 @@
 from Attack_Scanner import IAttack_Scanner
-from SQLI_Scanner_Utils import find_sqli,SqliStrictness
+from SQLI_Scanner_Utils import find_sqli, SqliStrictness
 
 class SqliScanner(IAttack_Scanner):
     @staticmethod

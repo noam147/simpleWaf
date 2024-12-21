@@ -55,12 +55,6 @@ def exec_command(command:str,args_for_command:tuple=()) -> list:
     output: if the command is an update/insert command - an empty list
     if the command is select command - list of the output
     """
-    """db_config = {
-        "host": "localhost",
-        "user": "user1",
-        "password": "12345678",
-        "database": "wafDataBase"
-    }"""
     result = []
     conn = None
     cursor = None
@@ -233,6 +227,9 @@ def get_ip_address_by_host_name(host_name:str)->str:
     command = """
         SELECT ip_address FROM websites_ip where host_name = %s
         """
+    # for debug
+    if host_name == "mysite.com":  # for debug
+        return "127.0.0.1"  # for debug
     args = (host_name,)
     result = exec_command(command,args)
     if len(result) == 0 or result == ERROR_WITH_DB_EXEC_COMMAND_CODE:
