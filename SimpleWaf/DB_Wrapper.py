@@ -140,12 +140,20 @@ def create_tables()->None:
         )
         """
 
+    preferences_table = """
+    CREATE TABLE IF NOT EXISTS preferences (
+        host_name VARCHAR(255) UNIQUE,
+        sql_strictness INTEGER,
+        send_email_when_attacked BOOL
+        )
+        """
 
     #date_to_free= (yyyy-mm-dd) - string
     exec_command(websites_table)
     exec_command(website_login)
     exec_command(attackers_table)
     exec_command(attackers_score_table)
+    exec_command(preferences_table)
     return
 
 #attackers score:
@@ -304,3 +312,9 @@ def insert_into_website_login(host_name:str, user_name:str, password:str, email:
     if result == ERROR_WITH_DB_EXEC_COMMAND_CODE:
         return False
     return True
+
+###  preferences table ###
+def special_insert_or_update_preferences_table() -> None:
+    pass
+def get_preferences_by_host_name(host_name:str):
+    pass
