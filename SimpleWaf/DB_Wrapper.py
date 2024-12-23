@@ -137,6 +137,8 @@ def create_tables()->None:
             current_score DECIMAL(3,1)
         )
         """
+
+
     #date_to_free= (yyyy-mm-dd) - string
     exec_command(websites_table)
     exec_command(website_login)
@@ -290,6 +292,7 @@ def insert_into_website_login(host_name:str, user_name:str, password:str, email:
     if result == ERROR_WITH_DB_EXEC_COMMAND_CODE:
         return False
     return True
+
 
 def check_functunallty():
 
