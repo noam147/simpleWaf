@@ -9,8 +9,32 @@ db_config = {
         "password": "12345678",
         "database": "wafDataBase"
     }
-#general tables:
 
+### for attacker finding and blocking ###
+from datetime import datetime, timedelta
+def calc_n_days_from_now(n:int) -> str:
+
+    current_date = datetime.now()
+    future_date = current_date + timedelta(days=n)
+    formatted_date = future_date.strftime('%Y-%m-%d')
+    return formatted_date
+def calc_attacker_free_date(attacker_ip: str) -> str:
+    NUM_OF_DAYS = 30
+    ### update the score ###
+    special_insert_or_update_attackers_score(attacker_ip)
+    ### get the current score ###
+    current_score = get_score_of_attacker(attacker_ip)
+    DAYS_UNTIL_FREE:int = int(NUM_OF_DAYS * current_score)
+
+    return calc_n_days_from_now(DAYS_UNTIL_FREE)
+
+def when_find_attacker(attacker_ip: str):
+    free_date = calc_attacker_free_date(attacker_ip)
+    special_insert_or_update_attackers_table(attacker_ip, free_date)
+
+
+
+#general tables:
 def drop_table(table_name:str):
     query = "DROP TABLE IF EXISTS " + table_name
     exec_command(query)
@@ -109,11 +133,21 @@ def create_tables()->None:
             current_score DECIMAL(3,1)
         )
         """
+
+    preferences_table = """
+    CREATE TABLE IF NOT EXISTS preferences (
+        host_name VARCHAR(255) UNIQUE,
+        sql_strictness INTEGER,
+        send_email_when_attacked BOOL
+        )
+        """
+
     #date_to_free= (yyyy-mm-dd) - string
     exec_command(websites_table)
     exec_command(website_login)
     exec_command(attackers_table)
     exec_command(attackers_score_table)
+    exec_command(preferences_table)
     return
 
 #attackers score:
@@ -276,19 +310,8 @@ def insert_into_website_login(host_name:str, user_name:str, password:str, email:
         return False
     return True
 
-def check_functionality():
-    create_tables()
-    print_table_values("attackers")
-    #websites
-    example_ip = "111.123.222.121"
-    example_host_name = "mySite.com2"
-    insert_into_websites_ip(example_host_name,example_ip)
-    print_table_values("websites_ip")
-    get_ip_address_by_host_name(example_host_name)
-
-    #attackers
-    example_user_ip = "99.99.99.99"
-    insert_into_attackers(example_user_ip,"2025-00-00")
-    print(is_ip_blocked(example_user_ip))
-    delete_attacker(example_ip)
-    print_table_values("attackers")
+###  preferences table ###
+def special_insert_or_update_preferences_table() -> None:
+    pass
+def get_preferences_by_host_name(host_name:str):
+    pass

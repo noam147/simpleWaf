@@ -20,8 +20,11 @@ def when_find_attacker(attacker_ip: str):
     free_date = calc_attacker_free_date(attacker_ip)
     DB_Wrapper.special_insert_or_update_attackers_table(attacker_ip, free_date)
 
+
 class TestDB(unittest.TestCase):
+
     def test_create_tables(self):
+        ### for creating everything needed before testing ###
         DB_Wrapper.create_tables()
 
     def test_attackers_table(self):
