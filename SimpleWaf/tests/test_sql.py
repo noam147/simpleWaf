@@ -1,7 +1,7 @@
 import unittest
 import urllib.parse
 import sys
-sys.path.append('../SQLI_Modules')
+sys.path.append('../code')
 import SQLI_Scanner
 class TestSQLI(unittest.TestCase):
     def test_sqli(self):
