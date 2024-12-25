@@ -118,6 +118,8 @@ def make_app():
 
 
 if __name__ == "__main__":
+    import DDOS_Scanner
+    DDOS_Scanner.DDOSScanner.activate_at_start()
     """DB_Wrapper.db_config ={
         "host": "localhost",
         "user": "root",

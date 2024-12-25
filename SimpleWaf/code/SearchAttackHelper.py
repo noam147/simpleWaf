@@ -1,8 +1,13 @@
 import json
+
+import requests
 import tornado.escape
 import tornado.httputil
 # import sql checking
 import sys
+
+from DDOS_Scanner import DDOSScanner
+
 # appending the directory of SQLI_Modules
 sys.path.append('SQLI_Modules')
 from SQLI_Scanner import SqliScanner  # Importing the SQLI scanning module
@@ -16,6 +21,13 @@ class SearchAttacks:
         Determines if a request contains attacks based on URL, headers, or body.
         :return: True if an attack is detected (abort), False otherwise (pass through).
         """
+        if self.__search_sql(self.current_request):
+            return True
+        if self.__search_ddos(self.current_request):
+            return True
+        return False
+
+
         # Check URL
         if self.__search_in_url(self.current_request.uri):
             return True
@@ -59,10 +71,11 @@ class SearchAttacks:
         """
         return self.__search_sql(str_json)
 
-    def __search_sql(self, data: str) -> bool:
+    def __search_sql(self, data: tornado.httputil.HTTPServerRequest) -> bool:
         """
         Check if the provided data contains SQL injections.
         """
         result = SqliScanner.scan(data)
         return result
-
+    def __search_ddos(self,data: tornado.httputil.HTTPServerRequest) -> bool:
+        return DDOSScanner.scan(data)
