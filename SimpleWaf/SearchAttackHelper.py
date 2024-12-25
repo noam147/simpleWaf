@@ -1,70 +1,68 @@
-import requests
 import json
-
-#import sql chcking
+import tornado.escape
+import tornado.httputil
+# import sql checking
 import sys
 # appending the directory of SQLI_Modules
 sys.path.append('SQLI_Modules')
-# now we can import mod
-from SQLI_Scanner import SqliScanner
-# calling the scan function of SqliScanner
-#example of usage:
-#result = SqliScanner.scan("hello")
-#print("SQL injection result: "+str(result))
+from SQLI_Scanner import SqliScanner  # Importing the SQLI scanning module
+
 class SearchAttacks:
-
-    def __init__(self,msg_from_client:requests.Request):
+    def __init__(self, msg_from_client: tornado.httputil.HTTPServerRequest):
         self.current_request = msg_from_client
-    def search_attacks(self) -> bool:
-        """func will tell the waf if to pass a msg or abort
-        :return - true: abort - there is an attack.
-        false: there isn't an attack"""
 
-        ###check url ###
-        if self.__search_in_url(self.current_request.url):
+    def search_attacks(self) -> bool:
+        """
+        Determines if a request contains attacks based on URL, headers, or body.
+        :return: True if an attack is detected (abort), False otherwise (pass through).
+        """
+        # Check URL
+        if self.__search_in_url(self.current_request.uri):
             return True
-        ###check headers ###
+
+        # Check Headers
         headers_dict = dict(self.current_request.headers)
         if self.__search_in_headers(headers_dict):
             return True
-        #str_headers = json.dumps(headers_dict)
-        ##search in json (if request has one)
+
+        # Check JSON Body
         try:
-            json_dict = dict(self.current_request.json)
-            str_json = json.dumps(json_dict)
-            if self.__search_in_json(str_json):
-                return True
-        except Exception:
-            pass#there is not a json part in here
+            body = self.current_request.body
+            if body:
+                json_data = tornado.escape.json_decode(body)
+                str_json = json.dumps(json_data)
+                if self.__search_in_json(str_json):
+                    return True
+        except json.JSONDecodeError:
+            print("Request does not contain valid JSON.")
+
         return False
 
+    def __search_in_url(self, url: str) -> bool:
+        """
+        Search for SQL injections or other attacks in the URL.
+        """
+        return self.__search_sql(url)
 
-        """"#sql:
-        flag1 = self.__search_sql(self.current_request.url)
-        flag2 = self.__search_sql(str_headers)
-        flag3 = self.__search_sql(str_data)
-        if flag1 or flag2 or flag3:
-            return True"""
-
-    def __search_in_url(self,url:str)->bool:
-        if self.__search_sql(url):
-            return True
-        return False
-    def __search_in_headers(self,dict_headers:dict)->bool:
-        for key,value in dict_headers.items():
+    def __search_in_headers(self, dict_headers: dict) -> bool:
+        """
+        Search for SQL injections or other attacks in headers.
+        """
+        for key, value in dict_headers.items():
             if self.__search_sql(value):
                 return True
         return False
-    def __search_in_json(self,str_json):
-        if self.__search_sql(data=str_json):
-            return True
-        return False
 
+    def __search_in_json(self, str_json: str) -> bool:
+        """
+        Search for SQL injections or other attacks in JSON data.
+        """
+        return self.__search_sql(str_json)
 
-
-    def __search_sql(self, data:str) -> bool:
-        # calling the scan function of SqliScanner
-        # example of usage:
+    def __search_sql(self, data: str) -> bool:
+        """
+        Check if the provided data contains SQL injections.
+        """
         result = SqliScanner.scan(data)
-        print("SQL injection result: " + str(result))
         return result
+

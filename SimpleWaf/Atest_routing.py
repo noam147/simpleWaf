@@ -1,13 +1,25 @@
 import requests
+
+import DB_Wrapper
 from vars_for_global_use import *
 
 WAF_IP_ADDRESS = "127.0.0.1"
 PORT = 5000
 url = f"http://{WAF_IP_ADDRESS}:{PORT}"
+
+def t1_est_real_web():
+    """this for testing in real world - when try this - put in routing.py line 79(for now):
+     new_url = f"https://{website_ip}:/{path}" """
+    host_name = "dns.google"
+    headers = {
+        "Host": host_name
+    }
+    response = requests.get(url, headers=headers)
+    print(response)
 def t1est_1()->bool:
     #does not work at this moment ->
     #need to put https in url, and some headres are prablomatic
-    existing_web_host_name = "dns.google"
+    existing_web_host_name = "mysite.com"
     headers = {
         "Host": existing_web_host_name
     }
@@ -26,7 +38,7 @@ def t1est_2()->bool:
 def t1est_3()->bool:
     #does not work at this moment ->
     #need to put https in url, and some headres are prablomatic
-    existing_web_host_name = "dns.google"
+    existing_web_host_name = "mysite.com"
     headers = {
         "Host": existing_web_host_name
     }
@@ -40,7 +52,7 @@ def t1est_3()->bool:
 def t1est_4()->bool:
     #does not work at this moment ->
     #need to put https in url, and some headres are prablomatic
-    existing_web_host_name = "dns.google?user='or 1=1'"
+    existing_web_host_name = "mysite.com?user='or 1=1'"
     headers = {
         "Host": existing_web_host_name
     }
@@ -49,6 +61,7 @@ def t1est_4()->bool:
     print(response)
     assert response.status_code == ATTACK_FOUND_CODE
 def activate_all_tests():
+    t1_est_real_web()
     t1est_1()
     t1est_2()
     t1est_3()
