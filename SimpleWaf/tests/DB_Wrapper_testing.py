@@ -1,9 +1,9 @@
 import unittest
-import DB_Wrapper
-import sys
 import argparse
 from datetime import datetime, timedelta
-
+import sys
+sys.path.append('../code')
+import DB_Wrapper
 def calc_n_days_from_now(n: int) -> str:
     current_date = datetime.now()
     future_date = current_date + timedelta(days=n)
