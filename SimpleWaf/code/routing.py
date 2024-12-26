@@ -103,12 +103,23 @@ class WAFRequestHandler(RequestHandler):
                 return
             self.set_status(response.code)
             self._write_response(response)
+    async def before_request_to_client(self):
+        """mimic flask way of adding things before sending request"""
 
+        #defend clickjacking:
+        #wrong way:
+        #self.request.headers["X-Frame-Options"] = "SAME-ORIGIN"
+        #this is the msg from the client to the server, we want the msg from server to client thus:
+        #right way:
+        self.set_header("X-Frame-Options", "SAMEORIGIN")
     def _write_response(self, response: HTTPResponse):
         for header, value in response.headers.get_all():
             if header.lower() not in ("content-length", "transfer-encoding", "content-encoding"):
                 self.set_header(header, value)
+        self.before_request_to_client()#here apply rules
         self.write(response.body)
+
+
 
 
 def make_app():
