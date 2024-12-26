@@ -118,12 +118,14 @@ def make_app():
 
 
 if __name__ == "__main__":
-    DB_Wrapper.db_config ={
+    import DDOS_Scanner
+    DDOS_Scanner.DDOSScanner.activate_at_start()
+    """DB_Wrapper.db_config ={
         "host": "localhost",
         "user": "root",
         "password": "guytu0908",
         "database": "wafDataBase"
-    }
+    }"""
     app = make_app()
     app.listen(PORT_APP)
     print(f"Running Tornado app on port {PORT_APP}")

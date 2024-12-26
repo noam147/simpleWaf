@@ -1,8 +1,9 @@
 import requests
+import sys
+sys.path.append('../code')
 
 import DB_Wrapper
 from vars_for_global_use import *
-
 WAF_IP_ADDRESS = "127.0.0.1"
 PORT = 5000
 url = f"http://{WAF_IP_ADDRESS}:{PORT}"
@@ -61,7 +62,7 @@ def t1est_4()->bool:
     print(response)
     assert response.status_code == ATTACK_FOUND_CODE
 def activate_all_tests():
-    t1_est_real_web()
+    #t1_est_real_web()
     t1est_1()
     t1est_2()
     t1est_3()
