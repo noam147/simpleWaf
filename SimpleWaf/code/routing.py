@@ -223,6 +223,15 @@ class WAFRequestHandler(RequestHandler):
             self.write(response.body)
             self.finish()
             self._finished = True
+        #defend clickjacking:
+        #wrong way:
+        #self.request.headers["X-Frame-Options"] = "SAME-ORIGIN"
+        #this is the msg from the client to the server, we want the msg from server to client thus:
+        #right way:
+        self.set_header("X-Frame-Options", "SAMEORIGIN")
+
+
+
 
 
 def make_app():
