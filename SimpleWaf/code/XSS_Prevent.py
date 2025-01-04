@@ -3,7 +3,6 @@ from Attack_Preventer import Attack_Scanner
 from requests import Request
 class XSS_Preventer(Attack_Scanner):
     @staticmethod
-    def replace_xss(text:str) -> str:
         # result in chars that do not have the affect of > in xss terms
         text = text.replace("<","&lt")
         text = text.replace(">","&gt")
