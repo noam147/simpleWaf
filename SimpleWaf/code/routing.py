@@ -11,8 +11,8 @@ from vars_for_global_use import *
 from typing import Any, Optional, Awaitable
 from collections import defaultdict
 import time
+import logger
 import inspect
-
 PORT_APP = 5000
 EXAMPLE_WEBSITE_PORT = 5001
 
@@ -41,6 +41,7 @@ class WAFRequestHandler(RequestHandler):
 
     def is_attacker(self, ip_add):
         return DB_Wrapper.is_ip_blocked(ip_add)
+
 
     def send_empty_msg_with_code(self, code):
         if not self._finished:
