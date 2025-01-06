@@ -10,11 +10,11 @@ class SQLI_Preventer(Attack_Scanner):
         return text
     @staticmethod
     def edit_request(request: Request) -> Request:
-        request.url = SQLI_Preventer._replace_sql(request.url)
+        request.url = SQLI_Preventer.replace_sql(request.url)
         new_headers = {}
         for key,val in request.headers.items():
-            new_headers[key] = SQLI_Preventer._replace_sql(val)
+            new_headers[key] = SQLI_Preventer.replace_sql(val)
         request.headers = new_headers
         if isinstance(request.data, str):#if data isn't str, we do not need to check it
-            request.data = SQLI_Preventer._replace_sql(request.data)
+            request.data = SQLI_Preventer.replace_sql(request.data)
         return request
