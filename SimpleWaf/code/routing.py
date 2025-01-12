@@ -11,6 +11,7 @@ from vars_for_global_use import *
 from typing import Any, Optional, Awaitable
 from collections import defaultdict
 import time
+from datetime import datetime
 import logger
 import inspect
 PORT_APP = 5000
@@ -40,9 +41,18 @@ class WAFRequestHandler(RequestHandler):
         print(f"User IP: {user_ip}")
 
     def is_attacker(self, ip_add):
+        ### for testing ###
+        #if ip_add == "127.0.0.1":
+        #    return False
         return DB_Wrapper.is_ip_blocked(ip_add)
 
-
+    def alert_to_logger(self, host_name: str, ip_attacker: str, attack_method: str):
+        l = logger.Logger()
+        current_formatted_time = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+        timeout = str(DB_Wrapper.calc_days_until_free_for_attack(ip_attacker))
+        timeout += "d"#add the d for days
+        data = logger.LogInfo(host_name, ip_attacker, attack_method, timeout, current_formatted_time)
+        l.log(data)
     def send_empty_msg_with_code(self, code):
         if not self._finished:
             self.set_status(code)
@@ -139,7 +149,15 @@ class WAFRequestHandler(RequestHandler):
 
         # Check for attacks
         current = SearchAttacks(self.request)
-        if current.search_attacks():
+        name_of_attack = current.search_attacks()
+        if name_of_attack == "":#if there is not attack
+            pass
+        else:#if there was an attack
+            #alert db
+            DB_Wrapper.when_find_attacker(ip_address)
+            #alert logger
+            self.alert_to_logger(host_name, ip_attacker=ip_address, attack_method=name_of_attack)
+            #abort request
             self.send_empty_msg_with_code(ATTACK_FOUND_CODE)
             return
 
@@ -174,11 +192,12 @@ class WAFRequestHandler(RequestHandler):
 
     def data_received(self, chunk: bytes):
         ip_address = self.request.remote_ip
-
+        host_name = urlparse(self.request.full_url()).hostname
         # Check if the chunk size is too small
         if not slow_loris_detect.check_chunk(len(chunk)):
             print(f"Blocked a tiny message from IP {ip_address}")
             self.send_empty_msg_with_code(ATTACK_FOUND_CODE)
+            self.alert_to_logger(host_name,ip_address,"Slow_Loris")
             if self.request.connection.stream:
                 self.request.connection.stream.close()
             return
@@ -248,14 +267,16 @@ def make_app():
 
 
 if __name__ == "__main__":
+    #delete attacker for testing at start
+    DB_Wrapper.delete_attacker("127.0.0.1")
     import DDOS_Scanner
     DDOS_Scanner.DDOSScanner.activate_at_start()
-    DB_Wrapper.db_config ={
+    """DB_Wrapper.db_config ={
         "host": "localhost",
         "user": "root",
         "password": "guytu0908",
         "database": "wafDataBase"
-    }
+    }"""
     app = make_app()
     app.listen(PORT_APP)
     print(f"Running Tornado app on port {PORT_APP}")

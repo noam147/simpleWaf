@@ -6,6 +6,7 @@ MAX_TIME_BETWEEN_CHUNKS = 4  # in seconds
 
 
 def check_connection(connection_number: int):
+    print(connection_number)
     if connection_number > MAX_CONNECTION_NUMBER:
         return False
     return True

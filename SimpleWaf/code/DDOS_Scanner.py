@@ -6,7 +6,7 @@ from tornado.httputil import HTTPServerRequest
 """method of find attack - get a dict that saves - ip_add with number of requests, if goes over N requests - this is ddos"""
 """will be a scanner each second to clear the dict"""
 class DDOSScanner(IAttack_Scanner):
-    _MAX_NUMBER_OF_REQUESTS_PER_SECOND = 200
+    _MAX_NUMBER_OF_REQUESTS_PER_SECOND = 15
     _ip_addresses_and_amount_of_requests:dict = {}
     _lock = threading.Lock()#for thread clearing the dict
     @staticmethod
