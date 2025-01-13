@@ -53,8 +53,8 @@ def exec_command(command:str,args_for_command:tuple=()) -> list:
     """
     db_config = {
         "host": "localhost",
-        "user": "user1",
-        "password": "12345678",
+        "user": "root",
+        "password": "guytu0908",
         "database": "wafDataBase"
     }
     result = []
@@ -172,7 +172,6 @@ def get_ip_address_by_host_name(host_name:str)->str:
         return ERROR_IP_ADDRESS
 
 def check_functunallty():
-
 
     create_tables()
     print_table_values("attackers")

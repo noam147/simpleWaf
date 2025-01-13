@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module type="PYTHON_MODULE" version="4">
   <component name="NewModuleRootManager">
+<<<<<<< HEAD
     <content url="file://$MODULE_DIR$" />
-    <orderEntry type="inheritedJdk" />
+=======
+    <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/Web_Server_Flask" />
+    </content>
+>>>>>>> 20b43685189e5dd7976f549776b045066ceb8d83
+    <orderEntry type="jdk" jdkName="Python 3.8 (simplewaf)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="PyDocumentationSettings">
