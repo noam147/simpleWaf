@@ -16,16 +16,16 @@ class SearchAttacks:
     def __init__(self, msg_from_client: tornado.httputil.HTTPServerRequest):
         self.current_request = msg_from_client
 
-    def search_attacks(self) -> bool:
+    def search_attacks(self) -> str:
         """
         Determines if a request contains attacks based on URL, headers, or body.
-        :return: True if an attack is detected (abort), False otherwise (pass through).
+        :return: name of attack if an attack is detected (abort), empty string otherwise (pass through).
         """
         if self.__search_sql(self.current_request):
-            return True
+            return "SQL_INJECTION"
         if self.__search_ddos(self.current_request):
-            return True
-        return False
+            return "DDOS"
+        return ""
 
 
         # Check URL

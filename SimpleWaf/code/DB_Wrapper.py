@@ -18,15 +18,19 @@ def calc_n_days_from_now(n:int) -> str:
     future_date = current_date + timedelta(days=n)
     formatted_date = future_date.strftime('%Y-%m-%d')
     return formatted_date
-def calc_attacker_free_date(attacker_ip: str) -> str:
+def calc_days_until_free_for_attack(attacker_ip: str) -> int:
+    ### get the current score ###
     NUM_OF_DAYS = 30
+    current_score = get_score_of_attacker(attacker_ip)
+    DAYS_UNTIL_FREE: int = int(NUM_OF_DAYS * current_score)
+    return DAYS_UNTIL_FREE
+def calc_attacker_free_date(attacker_ip: str) -> str:
     ### update the score ###
     special_insert_or_update_attackers_score(attacker_ip)
-    ### get the current score ###
-    current_score = get_score_of_attacker(attacker_ip)
-    DAYS_UNTIL_FREE:int = int(NUM_OF_DAYS * current_score)
 
-    return calc_n_days_from_now(DAYS_UNTIL_FREE)
+    days_until_free = calc_days_until_free_for_attack(attacker_ip)
+
+    return calc_n_days_from_now(days_until_free)
 
 def when_find_attacker(attacker_ip: str):
     free_date = calc_attacker_free_date(attacker_ip)
@@ -180,7 +184,9 @@ def get_score_of_attacker(attacker_ip_add:str) -> float:
         attacker_details = result[0]
         current_score = attacker_details[1]
         return float(current_score)#we want type float, not dechimal
-
+    else:
+        print(f"there isn't a score for attack: {attacker_ip_add} ,please fix this.")
+        return 3#if there isn't a score witch does not suppose to happend, we will generate a high score intentially
 #attackers:
 def insert_into_attackers(attacker_ip:str,date_to_free:str)->None:
 
