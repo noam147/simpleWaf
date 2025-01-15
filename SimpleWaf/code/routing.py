@@ -14,6 +14,7 @@ import time
 from datetime import datetime
 import logger
 import inspect
+
 PORT_APP = 5000
 EXAMPLE_WEBSITE_PORT = 5001
 
@@ -138,7 +139,7 @@ class WAFRequestHandler(RequestHandler):
 
         # Get website IP from DB
         host_name = urlparse(self.request.full_url()).hostname
-        website_ip = DB_Wrapper.get_ip_address_by_host_name(host_name)
+        website_ip = DB_Wrapper.get_ip_address_by_host_name(host_name.decode())
         if not website_ip or website_ip == DB_Wrapper.ERROR_IP_ADDRESS:
             print("Website does not exist")
             self.send_empty_msg_with_code(WEBSITE_NOT_EXIST_CODE)
@@ -150,13 +151,13 @@ class WAFRequestHandler(RequestHandler):
         # Check for attacks
         current = SearchAttacks(self.request)
         name_of_attack = current.search_attacks()
-        if name_of_attack == "":#if there is not attack
+        if name_of_attack == "":#if there is no attack
             pass
         else:#if there was an attack
             #alert db
             DB_Wrapper.when_find_attacker(ip_address)
             #alert logger
-            self.alert_to_logger(host_name, ip_attacker=ip_address, attack_method=name_of_attack)
+            self.alert_to_logger(host_name.decode(), ip_attacker=ip_address, attack_method=name_of_attack)
             #abort request
             self.send_empty_msg_with_code(ATTACK_FOUND_CODE)
             return
@@ -197,7 +198,60 @@ class WAFRequestHandler(RequestHandler):
         if not slow_loris_detect.check_chunk(len(chunk)):
             print(f"Blocked a tiny message from IP {ip_address}")
             self.send_empty_msg_with_code(ATTACK_FOUND_CODE)
-            self.alert_to_logger(host_name,ip_address,"Slow_Loris")
+            self.alert_to_logger(host_name.decode(),ip_address,"Slow_Loris")
+            if self.request.connection.stream:
+                self.request.connection.stream.close()
+            return
+
+        # Cancel any existing timeout handles for this IP if a valid chunk was received
+        if ip_address in self.chunk_timeout_handles and self.chunk_timeout_handles[ip_address]:
+            IOLoop.current().remove_timeout(self.chunk_timeout_handles[ip_address])
+
+        # Set a new timeout for the next chunk
+        self.chunk_timeout_handles[ip_address] = IOLoop.current().add_timeout(
+            time.time() + slow_loris_detect.MAX_TIME_BETWEEN_CHUNKS,
+            lambda: self.send_empty_msg_with_code(ATTACK_FOUND_CODE)
+        )
+
+        # Append the chunk to the request body
+        self.request.body += chunk
+
+    def on_finish(self):
+        ip_address = self.request.remote_ip
+
+        # Clear connection timeout
+        if ip_address in self.connection_timeout_handles:
+            IOLoop.current().remove_timeout(self.connection_timeout_handles[ip_address])
+            del self.connection_timeout_handles[ip_address]
+
+        # Clear chunk timeout
+        if ip_address in self.chunk_timeout_handles and self.chunk_timeout_handles[ip_address]:
+            IOLoop.current().remove_timeout(self.chunk_timeout_handles[ip_address])
+            del self.chunk_timeout_handles[ip_address]
+
+        # Remove the connection from connections
+        if ip_address in self.connections:
+            if self in self.connections[ip_address]:
+                self.connections[ip_address].remove(self)
+            if not self.connections[ip_address]:
+                del self.connections[ip_address]
+
+    async def before_request_to_client(self):
+        """mimic flask way of adding things before sending request"""
+        #defend clickjacking:
+        #wrong way:
+        #self.request.headers["X-Frame-Options"] = "SAME-ORIGIN"
+        #this is the msg from the client to the server, we want the msg from server to client thus:
+        #right way:
+        self.set_header("X-Frame-Options", "SAMEORIGIN")
+
+    def data_received(self, chunk: bytes):
+        ip_address = self.request.remote_ip
+
+        # Check if the chunk size is too small
+        if not slow_loris_detect.check_chunk(len(chunk)):
+            print(f"Blocked a tiny message from IP {ip_address}")
+            self.send_empty_msg_with_code(ATTACK_FOUND_CODE)
             if self.request.connection.stream:
                 self.request.connection.stream.close()
             return
@@ -240,18 +294,21 @@ class WAFRequestHandler(RequestHandler):
             for header, value in response.headers.get_all():
                 if header.lower() not in ("content-length", "transfer-encoding", "content-encoding"):
                     self.set_header(header, value)
+            self.before_request_to_client()
             self.write(response.body)
             self.finish()
             self._finished = True
-        #defend clickjacking:
-        #wrong way:
-        #self.request.headers["X-Frame-Options"] = "SAME-ORIGIN"
-        #this is the msg from the client to the server, we want the msg from server to client thus:
-        #right way:
-        self.set_header("X-Frame-Options", "SAMEORIGIN")
 
 
-
+    def _write_response(self, response: HTTPResponse):
+        if not self._finished:
+            for header, value in response.headers.get_all():
+                if header.lower() not in ("content-length", "transfer-encoding", "content-encoding"):
+                    self.set_header(header, value)
+            self.before_request_to_client()  # here apply rules
+            self.write(response.body)
+            self.finish()
+            self._finished = True
 
 
 def make_app():
@@ -271,12 +328,12 @@ if __name__ == "__main__":
     DB_Wrapper.delete_attacker("127.0.0.1")
     import DDOS_Scanner
     DDOS_Scanner.DDOSScanner.activate_at_start()
-    """DB_Wrapper.db_config ={
+    DB_Wrapper.db_config ={
         "host": "localhost",
         "user": "root",
         "password": "guytu0908",
         "database": "wafDataBase"
-    }"""
+    }
     app = make_app()
     app.listen(PORT_APP)
     print(f"Running Tornado app on port {PORT_APP}")
