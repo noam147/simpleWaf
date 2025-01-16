@@ -23,4 +23,5 @@ class CommandInjectionScanner(IAttack_Scanner):
             for k,v in data.body.items():
                 if find_command_injection_linux(v, strictness, blocked_characters):
                     return True
+
         return False

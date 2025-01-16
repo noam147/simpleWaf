@@ -3,7 +3,7 @@ import re
 from enum import Enum
 from dataclasses import dataclass
 from typing import List, Type
-
+import urllib.parse
 SQL_INJECTION_CODE = 0
 COMMAND_INJECTION_LINUX_CODE = 1
 COMMAND_INJECTION_WINDOWS_CODE = 2
@@ -73,6 +73,8 @@ def find_sqli(data: str, strictness: StrictnessLevel = StrictnessLevel.STRICT, b
 def find_attack(attack_code:int,data: str, strictness: StrictnessLevel = StrictnessLevel.STRICT, banned_characters: str = '') -> bool:
     """attack code - code for attack to scan"""
 
+    ### parse the html chars (for exmple the %7C)
+    data = urllib.parse.unquote(data)
     attack_regex: list[AttackRule] = []
 
     if attack_code == SQL_INJECTION_CODE:
@@ -91,6 +93,9 @@ def find_attack(attack_code:int,data: str, strictness: StrictnessLevel = Strictn
             if re.search(pattern.regex, data.upper()):
                 score += pattern.weight
 
+                ### to not waste additional checking ###
+                if score >= MAX_ATTACK_SCORE:
+                    return True
     if banned_characters != '':
         # search for invalid characters
         banned_characters_regex = f"(?i)[{banned_characters}]"
