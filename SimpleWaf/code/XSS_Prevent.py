@@ -5,8 +5,8 @@ class XSS_Preventer(Attack_Scanner):
     @staticmethod
     def replace_xss(text:str) -> str:
         # result in chars that do not have the affect of > in xss terms
-        text = text.replace("<","&lt")
-        text = text.replace(">","&gt")
+        text = text.replace("<","&lt;")
+        text = text.replace(">","&gt;")
         return text
     @staticmethod
     def edit_request(request: Request) -> Request:
