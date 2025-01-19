@@ -138,11 +138,16 @@ def create_tables()->None:
         )
         """
 
+### see documitation in Mismah Efion ###
     preferences_table = """
     CREATE TABLE IF NOT EXISTS preferences (
         host_name VARCHAR(255) UNIQUE,
         sql_strictness INTEGER,
-        send_email_when_attacked BOOL
+        xss_defence  BOOL,
+        hpp_defence BOOL,
+        file_attacks_level INTEGER,
+        send_email_when_attacked BOOL,
+        os_level INTEGER
         )
         """
 
@@ -283,7 +288,12 @@ def get_ip_address_by_host_name(host_name:str)->str:
     except Exception as e:
         print(e)
         return ERROR_IP_ADDRESS
-
+def get_all_host_names():
+    command = """
+            SELECT host_name FROM websites_ip
+            """
+    result = exec_command(command)
+    return result
 #website_login:
 def _hash_password(password:str):
     """func will encode the password before putting in db"""
@@ -317,7 +327,45 @@ def insert_into_website_login(host_name:str, user_name:str, password:str, email:
     return True
 
 ###  preferences table ###
-def special_insert_or_update_preferences_table() -> None:
-    pass
+
+from Preferences_Items import  Preferences_Items
+def special_insert_or_update_preferences_table_pref_items(prefs:Preferences_Items) ->None:
+    """get the strings and send to the actual func"""
+    special_insert_or_update_preferences_table(prefs.host_name,prefs.sql_level,prefs.xss_defence,prefs.hpp_defence,prefs.file_attack_level,prefs.to_send_email,prefs.os_level)
+def special_insert_or_update_preferences_table(
+    host_name: str,
+    sql_strictness: int,
+    xss_defence: bool,
+    hpp_defence: bool,
+    file_attacks_level: int,
+    send_email_when_attacked: bool,
+    os_level: int
+) -> None:
+    """when website signup or changes its settings, the web will send a req of update that will be treated here"""
+    ### todo maybe put the change into logger
+    command = """
+                INSERT INTO preferences (host_name, sql_strictness, xss_defence, hpp_defence,
+                                          file_attacks_level, send_email_when_attacked, os_level)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                ON DUPLICATE KEY UPDATE
+                    sql_strictness = VALUES(sql_strictness),
+                    xss_defence = VALUES(xss_defence),
+                    hpp_defence = VALUES(hpp_defence),
+                    file_attacks_level = VALUES(file_attacks_level),
+                    send_email_when_attacked = VALUES(send_email_when_attacked),
+                    os_level = VALUES(os_level)
+                """
+    args = (host_name, sql_strictness, xss_defence, hpp_defence, file_attacks_level, send_email_when_attacked, os_level)
+    exec_command(command,args)
 def get_preferences_by_host_name(host_name:str):
-    pass
+
+    ### todo checnage this from hard coded to SQL.STRICTfor example
+    defualt_prefs = [(host_name,3,True,True,3,True,1)]
+    command = """
+            SELECT * FROM preferences where host_name = %s
+            """
+    args = (host_name,)
+    result = exec_command(command,args)
+    if result == None or result == []:
+        return defualt_prefs
+    return result
