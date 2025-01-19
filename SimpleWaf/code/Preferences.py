@@ -3,19 +3,7 @@ and then just extrqact the data
 the dict will be updated in 24h(each new day)"""
 import DB_Wrapper
 from Preferences_Items import  Preferences_Items
-SQL_LEVEL = "sqli_defence_level"
-FILES_LEVEL = "file_attacks_level"
-XSS_LEVEL = "xss_defence"
-hpp_defence = "a"
-
-### send an email to the website owner ###
-SEND_EMAIL = "send_email_when_attacked"
-
-### 0: linux, 1: windows, 2: other(does not get check)
-OS = "osLevel"
-
-### ddos and slow loris are excluded because they are also harming the WAF itself and not the just the websites ###
-
+### ddos and slow loris are excluded because they are also harming the WAF itself and not just the websites ###
 
 class Preferences:
     preferences_dict = {}
@@ -41,15 +29,3 @@ class Preferences:
         except Exception:
             return None#if web not in db
 
-##update the table prefrnces ###
-DB_Wrapper.drop_table("Preferences")
-# create again
-DB_Wrapper.create_tables()
-
-example_of_settings_updations = [("facebook.com",3,True,True,3,True,1)]
-pref_items = Preferences_Items(example_of_settings_updations)
-DB_Wrapper.special_insert_or_update_preferences_table_pref_items(pref_items)
-## call to update the dict (in prodaction this will be called once in 24H)
-Preferences.update_dict()
-
-print(Preferences.get_preferences_of_website("facebook.com").to_string())
