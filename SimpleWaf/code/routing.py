@@ -108,6 +108,8 @@ class WAFRequestHandler(RequestHandler):
             print(f"detected too many connections, connections: {self.connections}")
             IOLoop.current().add_callback(self.stop_connections_for_ip, ip_address)
             self.send_empty_msg_with_code(ATTACK_FOUND_CODE)
+
+            self.alert_to_logger(self.request.host_name, ip_attacker=ip_address, attack_method="SLOW_LORIS")
             DB_Wrapper.when_find_attacker(ip_address)
 
     async def forward_request(self, new_url, method, body=None, headers=None):
