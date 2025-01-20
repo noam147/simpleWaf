@@ -13,6 +13,7 @@ from collections import defaultdict
 import time
 from datetime import datetime
 import logger
+import socket
 import inspect
 PORT_APP = 5000
 EXAMPLE_WEBSITE_PORT = 5001
@@ -107,6 +108,7 @@ class WAFRequestHandler(RequestHandler):
             print(f"detected too many connections, connections: {self.connections}")
             IOLoop.current().add_callback(self.stop_connections_for_ip, ip_address)
             self.send_empty_msg_with_code(ATTACK_FOUND_CODE)
+            DB_Wrapper.when_find_attacker(ip_address)
 
     async def forward_request(self, new_url, method, body=None, headers=None):
         client = AsyncHTTPClient()
@@ -119,6 +121,8 @@ class WAFRequestHandler(RequestHandler):
             )
             response = await client.fetch(request, raise_error=False)
             return response
+        except socket.error as e:
+            print("Error forwarding request: website is not reachable")
         except Exception as e:
             print(f"Error forwarding request: {e}")
             return None
