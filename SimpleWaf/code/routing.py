@@ -130,8 +130,6 @@ class WAFRequestHandler(RequestHandler):
             return None
 
     async def prepare_request(self, path):
-        print("in prepare")
-        print(self.request.body)
         ip_address = self.request.remote_ip
 
         # all data was transferred therefor canceling the connection timeout
@@ -171,8 +169,12 @@ class WAFRequestHandler(RequestHandler):
 
         # Construct the target URL
         new_url = f"{self.request.protocol}://{website_ip}:{EXAMPLE_WEBSITE_PORT}/{path}"
+        ##without port ###
+        #maybe we should put port in prefrences table...
+        # new_url = f"{self.request.protocol}://{website_ip}/{path}"
+        
         # For production: new_url = f"{self.request.protocol}://{website_ip}/{path}"
-        new_url = f"{self.request.protocol}://{website_ip}/{path}"
+
         if self.request.query_arguments:
             query_string = urlencode({k: v[0].decode() for k, v in self.request.query_arguments.items()})
             new_url = f"{new_url}?{query_string}"
@@ -246,11 +248,6 @@ class WAFRequestHandler(RequestHandler):
                 del self.connections[ip_address]
 
     def _write_response(self, response: HTTPResponse):
-        if self.get_status() == 304:
-            self._write_buffer.clear()
-            self.finish()
-            self._finished = True
-            return
         if not self._finished:
             for header, value in response.headers.get_all():
                 if header.lower() not in ("content-length", "transfer-encoding", "content-encoding"):
