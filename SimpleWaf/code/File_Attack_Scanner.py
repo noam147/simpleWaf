@@ -4,27 +4,98 @@ from tornado.httputil import HTTPServerRequest
 from Attack_Scanner import IAttack_Scanner
 
 
+def get_content_dispostion_from_headers(data: HTTPServerRequest):
+    keyword = "boundary="
+    bytes_boundary = b""
+    """example of input: b'--------------------------43b7b827abba990e\r\nContent-Disposition: form-data; name="file"; filename="exampleFile.txt"\r\nContent-Type: text/plain\r\n\r\nthis is an example file for the testing in file uploads\r\nyay\r\n--------------------------43b7b827abba990e--\r\n'"""
+    headers = data.headers
+    for key,value in headers.items():
+        if key !="Content-Type":
+            continue
+        index = value.find(keyword)
+        if index == -1:
+            return ""
+        str_boundary = value[index+len(keyword):]
+        bytes_boundary = str_boundary.encode()
+        return b"--"+bytes_boundary+b"\r\n"#does not need to keep checking
+    return bytes_boundary
 
+def get_full_body_back(parts,bytes_boundary):
+    bytes_msg = b""
+    for cell in parts:
+        bytes_msg += cell
+        bytes_msg += bytes_boundary
+    return bytes_msg
+def get_files_properties(data: HTTPServerRequest) -> list[str]:
+    filenames:list[str] = []
+    bytes_boundary = get_content_dispostion_from_headers(data)
+    variables_in_body = data.body.split(bytes_boundary)#todo check if the boundary isnt the same on header with the server handling: for testing
+    if len(variables_in_body) == 0 or len(variables_in_body) == 1:
+        ### if for some reasons the headers say this is a speicifc type but it actuaaly isnt
+        return None
+    #del parts[0]
+    #del parts[-1]
+    for properties_of_var in variables_in_body:
+        ### iterates on each 'var' in body
+
+        curr = properties_of_var.strip()
+        if not curr:
+            continue#empty part
+
+        try:
+            headers,actual_data = properties_of_var.split(b"\r\n\r\n")#todo check if this only on windows(the \r\n)
+        except Exception:
+            continue
+        ### serach for files ###
+        keyword = b"filename"
+        index = headers.find(keyword)
+
+        if index == -1:
+            ### if this is just a var like username of something like that, we do not care. we want jjust files ###
+            continue
+
+        ### get the name of file on str ###
+        name_of_file:bytes = headers[index+len(keyword):]
+        temp_str_filename:str = name_of_file.decode()
+        actual_name = temp_str_filename.split("\"")#the file name before this looks like this: '="exa%22mple\\\\%22File.txt"\r\nContent-Type: text/plain'
+
+        if len(actual_name) != 3:#if for some reason there are more than 3 " - does not suppose to happend at all
+            bad_thing = 1
+            return_attacker = True
+            continue
+
+        ### this is the REAL file name! ###
+        str_filename = actual_name[1]
+        filenames.append(str_filename)
+
+    return filenames
 class Files_Scanner(IAttack_Scanner):
     @staticmethod
     def scan(data: HTTPServerRequest) -> bool:
-        allowed_file_extentions = {".png", ".jpg", ".docx", ".jpeg", ".jiff", ".pdf"}
-        files = data.files
-        for file in files:
-            file_name: str = file.name
+        """levels for -
+        block anyone who tries php files - 1
+        block anyone who tries to upload files that are not in the waf format - 2"""
+
+        ### we still didn't implement the defend level in param in func ###
+        attack_defend_level = 2
+
+        filenames = get_files_properties(data)
+        allowed_file_extentions = [".png", ".jpg", ".docx", ".jpeg", ".jiff", ".pdf",".txt"]
+        for file_name in filenames:
             ### find the last accurance of '.' for extension
             index_extension = file_name.rfind(".")
             if index_extension == -1:
                 ### the file does not have an extention ###
                 pass
             file_extension = file_name[index_extension:].lower()
-            if "php" in file_extension:
-                ### we do not want php files at all cost ###
+            if "php" in file_extension and attack_defend_level > 0:
+                ### we do not want php files at all cost (just if the web explicitily allows)###
                 return True
 
             ### check if in allowed format,
             # but if user mistakenly uploaded file that is not in the format,
             # should we really declare him as an attacker?
             if file_extension not in allowed_file_extentions:
-                return True
+                if attack_defend_level > 1:#for website pref table
+                    return True
         return False
