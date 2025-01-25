@@ -14,7 +14,7 @@ def get_content_dispostion_from_headers(data: HTTPServerRequest):
             continue
         index = value.find(keyword)
         if index == -1:
-            return ""
+            return b""
         str_boundary = value[index+len(keyword):]
         bytes_boundary = str_boundary.encode()
         return b"--"+bytes_boundary+b"\r\n"#does not need to keep checking
@@ -29,10 +29,12 @@ def get_full_body_back(parts,bytes_boundary):
 def get_files_properties(data: HTTPServerRequest) -> list[str]:
     filenames:list[str] = []
     bytes_boundary = get_content_dispostion_from_headers(data)
+    if bytes_boundary == b"":
+        return []
     variables_in_body = data.body.split(bytes_boundary)#todo check if the boundary isnt the same on header with the server handling: for testing
     if len(variables_in_body) == 0 or len(variables_in_body) == 1:
         ### if for some reasons the headers say this is a speicifc type but it actuaaly isnt
-        return None
+        return []
     #del parts[0]
     #del parts[-1]
     for properties_of_var in variables_in_body:
@@ -80,6 +82,7 @@ class Files_Scanner(IAttack_Scanner):
         attack_defend_level = 2
 
         filenames = get_files_properties(data)
+
         allowed_file_extentions = [".png", ".jpg", ".docx", ".jpeg", ".jiff", ".pdf",".txt"]
         for file_name in filenames:
             ### find the last accurance of '.' for extension
