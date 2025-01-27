@@ -117,7 +117,7 @@ def create_tables()->None:
     """
     website_login = """
     CREATE TABLE IF NOT EXISTS website_login (
-    host_name VARCHAR(255) UNIQUE,
+    host_name VARCHAR(255),
     user_name VARCHAR(64) UNIQUE,
     hashed_password VARCHAR(64),
     email VARCHAR(128)    
