@@ -3,7 +3,7 @@
 from tornado.httputil import HTTPServerRequest
 from Attack_Scanner import IAttack_Scanner
 
-
+ATTACKER_RETURN = ["ATTACKER!"]
 def get_content_dispostion_from_headers(data: HTTPServerRequest):
     keyword = "boundary="
     bytes_boundary = b""
@@ -15,7 +15,8 @@ def get_content_dispostion_from_headers(data: HTTPServerRequest):
         index = value.find(keyword)
         if index == -1:
             return b""
-        str_boundary = value[index+len(keyword):]
+        str_boundary:str = value[index+len(keyword):]
+        str_boundary = str_boundary.strip()#remove any spaces
         bytes_boundary = str_boundary.encode()
         return b"--"+bytes_boundary+b"\r\n"#does not need to keep checking
     return bytes_boundary
@@ -62,9 +63,7 @@ def get_files_properties(data: HTTPServerRequest) -> list[str]:
         actual_name = temp_str_filename.split("\"")#the file name before this looks like this: '="exa%22mple\\\\%22File.txt"\r\nContent-Type: text/plain'
 
         if len(actual_name) != 3:#if for some reason there are more than 3 " - does not suppose to happend at all
-            bad_thing = 1
-            return_attacker = True
-            continue
+            return ATTACKER_RETURN
 
         ### this is the REAL file name! ###
         str_filename = actual_name[1]
@@ -82,6 +81,8 @@ class Files_Scanner(IAttack_Scanner):
         attack_defend_level = 2
 
         filenames = get_files_properties(data)
+        if filenames == ATTACKER_RETURN:
+            return True###if during the file prasing something that really does not suppose to happen actually happend
 
         allowed_file_extentions = [".png", ".jpg", ".docx", ".jpeg", ".jiff", ".pdf",".txt"]
         for file_name in filenames:
@@ -89,7 +90,7 @@ class Files_Scanner(IAttack_Scanner):
             index_extension = file_name.rfind(".")
             if index_extension == -1:
                 ### the file does not have an extention ###
-                pass
+                continue###we will not block files without extensions
             file_extension = file_name[index_extension:].lower()
             if "php" in file_extension and attack_defend_level > 0:
                 ### we do not want php files at all cost (just if the web explicitily allows)###
