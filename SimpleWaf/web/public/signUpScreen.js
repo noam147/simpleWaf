@@ -5,6 +5,7 @@ signUpform.addEventListener('submit', async(event) => {
     event.preventDefault(); // Prevent the form from reloading the page
 
     let hostName = document.getElementById("hostNameInput").value;
+    alert(typeof(hostName))
     let name = document.getElementById('userNameInput').value;
     let password = document.getElementById('passwordInput').value;
     let passwordConfirm = document.getElementById('passwordConfirmInput').value;
@@ -16,14 +17,14 @@ signUpform.addEventListener('submit', async(event) => {
     send_to_server(hostName,name,password,email);
 })
 
-function send_to_server(website_add,username,password,email) {
+function send_to_server(host_name,username,password,email) {
     fetch( "/signUp", {
         method: "POST", // Specifies the HTTP method
         headers: {
             "Host":SERVER_ADDRESS,
             "Content-Type": "application/json" // Sets the appropriate headers
         },
-        body: JSON.stringify({ "website_add":website_add,"username": username ,"password":password,"email":email}) // Converts the data to JSON format
+        body: JSON.stringify({ "host_name":host_name,"username": username ,"password":password,"email":email}) // Converts the data to JSON format
     })
     .then(response => {
         if (!response.ok) {
