@@ -26,7 +26,7 @@ def handle_request():
         if DB_Wrapper.check_if_username_exist_in_website_login(username):
             return {"status": "failed", "message": "username already exist"}
         DB_Wrapper.insert_into_website_login(host_name,username,password,email)
-        return {"status": "success", "message": "Sign-up request received"}
+        return {"status": "success", "message": "Sign-up request received successfully!"}
     except Exception as e:
         print(e)
         print("sending error")

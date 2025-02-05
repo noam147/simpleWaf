@@ -34,6 +34,13 @@ function send_to_server(host_name,username,password,email) {
     })
     .then(data => {
         console.log("Server response:", data); // Handle success
+        if(data["status"] == "success")
+        {
+            //maybe pass the user into another page?
+        }
+        let msgFromServer = document.getElementById("msgResult")
+        msgFromServer.innerHTML = data["message"]
+
     })
     .catch(error => {
         console.error("Error occurred:", error); // Handle errors
