@@ -5,6 +5,8 @@ from tornado.httpclient import AsyncHTTPClient, HTTPRequest, HTTPResponse, httpu
 from tornado.escape import json_decode
 import DB_Wrapper
 from urllib.parse import urlparse, urlencode
+
+import csrf_token_helper
 import slow_loris_detect
 from SearchAttackHelper import SearchAttacks
 from vars_for_global_use import *
@@ -14,7 +16,8 @@ import time
 from datetime import datetime
 import logger
 import socket
-import inspect
+from io import BytesIO
+
 PORT_APP = 5000
 EXAMPLE_WEBSITE_PORT = 5001
 
@@ -112,6 +115,7 @@ class WAFRequestHandler(RequestHandler):
             self.alert_to_logger(self.request.host_name, ip_attacker=ip_address, attack_method="SLOW_LORIS")
             DB_Wrapper.when_find_attacker(ip_address)
 
+
     async def forward_request(self, new_url, method, body=None, headers=None):
         client = AsyncHTTPClient()
         try:
@@ -188,8 +192,19 @@ class WAFRequestHandler(RequestHandler):
             if not response:
                 self.send_empty_msg_with_code(WEBSITE_NOT_RESPONDING_CODE)
                 return
+
+            # csrf protection
+            response.headers.add("X-CSRFToken", self.xsrf_token)
+            new_response_body = csrf_token_helper.inject_token_to_html(response.body.decode(), self.xsrf_form_html())
+            modified_response = HTTPResponse(
+                request=HTTPRequest(response.effective_url),
+                code=response.code,
+                headers=httputil.HTTPHeaders(response.headers),
+                buffer=BytesIO(new_response_body.encode()),  # New response body
+                request_time=response.request_time
+            )
             self.set_status(response.code)
-            self._write_response(response)
+            self._write_response(modified_response)
 
     async def post(self, path):
 
@@ -270,25 +285,30 @@ def make_app():
     connections = defaultdict(list)
     connection_timeout_handles = defaultdict(lambda: None)
     chunk_timeout_handles = defaultdict(lambda: None)
-
+    settings = {
+        "xsrf_cookies": True,
+    }
     return Application([
         (r"/(.*)", WAFRequestHandler,
          dict(connections=connections, connection_timeout_handles=connection_timeout_handles,
               chunk_timeout_handles=chunk_timeout_handles)),
-    ])
+    ], **settings)
 
 
 if __name__ == "__main__":
-    #delete attacker for testing at start
-    DB_Wrapper.delete_attacker("127.0.0.1")
-    import DDOS_Scanner
-    DDOS_Scanner.DDOSScanner.activate_at_start()
-    """DB_Wrapper.db_config ={
+    DB_Wrapper.db_config = {
         "host": "localhost",
         "user": "root",
         "password": "guytu0908",
         "database": "wafDataBase"
-    }"""
+
+    }
+    #delete attacker for testing at start
+    DB_Wrapper.delete_attacker("127.0.0.1")
+    import DDOS_Scanner
+    DDOS_Scanner.DDOSScanner.activate_at_start()
+
+
     app = make_app()
     app.listen(PORT_APP)
     print(f"Running Tornado app on port {PORT_APP}")
