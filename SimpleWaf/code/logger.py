@@ -9,12 +9,17 @@ INNER_LOG_FILE_NAME = "waf_system.log"
 
 
 class LogInfo:
+    def _protect_logger(self):
+        #replace the salshed to prevent file traversal
+        self.server_domain_name = self.server_domain_name.replace("/","")
+        self.server_domain_name = self.server_domain_name.replace("\\","")
     def __init__(self, server_domain_name: str, ip: str, attack_type: str, timeout: str, timestamp: str):
         self.server_domain_name = server_domain_name
         self.ip = ip
         self.attack_type = attack_type
         self.timeout = timeout
         self.timestamp = timestamp
+        self._protect_logger()
 
     def data_to_dict(self):
         return \
@@ -48,8 +53,13 @@ class _InnerLogger:
 
 
 class _OuterLogger:
+    def _protect_logger(self):
+        #replace the salshed to prevent file traversal
+        self.server_domain_name = self.log_dir.replace("/","")
+        self.server_domain_name = self.log_dir.replace("\\","")
     def __init__(self):
         self.log_dir = OUTER_LOG_PATH
+        self._protect_logger()
         os.makedirs(self.log_dir, exist_ok=True)
         self.loggers = {}
     def _get_website_name_without_speacial_characters(self,website_name:str)->str:
@@ -104,6 +114,6 @@ class Logger:
 
 if __name__ == "__main__":
     logger = Logger()
-    data = LogInfo("mysite.com", "123.233.32.432", "XSS", "32d", "2024-12-05T16:30:00Z")
+    data = LogInfo("../inner/waf_system", "123.233.32.432", "XSS", "32d", "2024-12-05T16:30:00Z")
     logger.log(data)
     print(logger.get_logged_data())
