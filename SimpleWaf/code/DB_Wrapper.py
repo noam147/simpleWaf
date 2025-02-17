@@ -334,3 +334,4 @@ def special_insert_or_update_preferences_table() -> None:
     pass
 def get_preferences_by_host_name(host_name:str):
     pass
+

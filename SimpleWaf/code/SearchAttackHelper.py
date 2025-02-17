@@ -8,6 +8,8 @@ import sys
 
 from DDOS_Scanner import DDOSScanner
 from File_Attack_Scanner import Files_Scanner
+from Command_Injection_Scanner import CommandInjectionScanner
+
 # appending the directory of SQLI_Modules
 sys.path.append('SQLI_Modules')
 from SQLI_Scanner import SqliScanner  # Importing the SQLI scanning module
@@ -23,10 +25,12 @@ class SearchAttacks:
         """
         if self.__search_sql(self.current_request):
             return "SQL_INJECTION"
-        if self.__search_ddos(self.current_request):
+        elif self.__search_ddos(self.current_request):
             return "DDOS"
         if self.__search_files(self.current_request):
             return "FILE_UPLOAD"
+        elif self.__search_command_injection(self.current_request):
+            return "COMMAND_INJECTION"
         return ""
 
 
@@ -81,5 +85,11 @@ class SearchAttacks:
         return result
     def __search_ddos(self,data: tornado.httputil.HTTPServerRequest) -> bool:
         return DDOSScanner.scan(data)
+
     def __search_files(self,data: tornado.httputil.HTTPServerRequest) -> bool:
         return Files_Scanner.scan(data)
+
+    def __search_command_injection(self,data: tornado.httputil.HTTPServerRequest) -> bool:
+        return CommandInjectionScanner.scan(data)
+
+
