@@ -8,6 +8,8 @@ class Preferences_Items:
         self.file_attack_level:int = preferences[4]
         self.to_send_email:bool = preferences[5]
         self.os_level:int = preferences[6]
+        self.port:int = preferences[7]
+        self.isHttps:bool = preferences[8]#if false we will do http...
 
     def to_string(self) -> str:
         return (
@@ -18,5 +20,7 @@ class Preferences_Items:
             f"HPP Defence: {'Enabled' if self.hpp_defence else 'Disabled'}\n"
             f"File Attack Level: {self.file_attack_level}\n"
             f"Send Email When Attacked: {'Yes' if self.to_send_email else 'No'}\n"
-            f"OS Level: {self.os_level}"
+            f"OS Level: {self.os_level}\n"
+            f"Port: {self.port}\n"
+            f"Protocol: {'HTTPS' if self.isHttps else 'HTTP'}"
         )

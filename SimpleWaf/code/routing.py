@@ -13,6 +13,8 @@ from collections import defaultdict
 import time
 from datetime import datetime
 import logger
+from Preferences import Preferences
+import urllib.parse
 import inspect
 PORT_APP = 5000
 EXAMPLE_WEBSITE_PORT = 5001
@@ -161,17 +163,29 @@ class WAFRequestHandler(RequestHandler):
             self.send_empty_msg_with_code(ATTACK_FOUND_CODE)
             return
 
-        # Construct the target URL
-        new_url = f"{self.request.protocol}://{website_ip}:{EXAMPLE_WEBSITE_PORT}/{path}"
-        # For production: new_url = f"{self.request.protocol}://{website_ip}/{path}"
+        ### need optimazation - to not fetch from db each time... ###
+        pref_of_host_name_in_memory = Preferences.get_preferences_of_website(host_name)
+        #fetching from db:
+        #pref_of_host_name_from_db = DB_Wrapper.get_preferences_by_host_name(host_name)
+        if pref_of_host_name_in_memory.isHttps:
+            new_url = "https://"
+        else:
+            new_url = "http://"
+        new_url+= f"{website_ip}:{pref_of_host_name_in_memory.port}/{path}"
+
         if self.request.query_arguments:
             query_string = urlencode({k: v[0].decode() for k, v in self.request.query_arguments.items()})
             new_url = f"{new_url}?{query_string}"
+
+
+        ### for non aski characters in a url (like chrs in hebrew)###
+        new_url = urllib.parse.quote(new_url, safe=":/")
 
         return new_url
 
     async def get(self, path):
         new_url = await self.prepare_request(path)
+
         if new_url:
             response = await self.forward_request(new_url, "GET", headers=self.request.headers)
             if not response:
@@ -240,7 +254,9 @@ class WAFRequestHandler(RequestHandler):
             for header, value in response.headers.get_all():
                 if header.lower() not in ("content-length", "transfer-encoding", "content-encoding"):
                     self.set_header(header, value)
-            self.write(response.body)
+            if response.code != 304:
+                ### in 304 we do not have a body ###
+                self.write(response.body)
             self.finish()
             self._finished = True
         #defend clickjacking:
@@ -271,6 +287,7 @@ if __name__ == "__main__":
     DB_Wrapper.delete_attacker("127.0.0.1")
     import DDOS_Scanner
     DDOS_Scanner.DDOSScanner.activate_at_start()
+    Preferences.at_start()
     """DB_Wrapper.db_config ={
         "host": "localhost",
         "user": "root",
