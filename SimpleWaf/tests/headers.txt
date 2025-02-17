@@ -1,0 +1,10 @@
+HTTP/1.1 200 OK
+Server: Werkzeug/3.0.6 Python/3.8.2
+Content-Type: text/html; charset=utf-8
+Date: Sat, 08 Feb 2025 19:19:28 GMT
+Connection: close
+X-Csrftoken: 2|eecbd1ad|ec9dbf4e0f27dc12318b6645d48d55a9|1739042368
+Etag: "a0f63457a620e8ced024d38f52ec92a3ad6f57b7"
+Content-Length: 22
+Set-Cookie: _xsrf=2|eecbd1ad|ec9dbf4e0f27dc12318b6645d48d55a9|1739042368; Path=/
+
