@@ -2,6 +2,7 @@
 
 from tornado.httputil import HTTPServerRequest
 from Attack_Scanner import IAttack_Scanner
+import urllib.parse
 
 ATTACKER_RETURN = ["ATTACKER!"]
 def get_content_dispostion_from_headers(data: HTTPServerRequest):
@@ -70,27 +71,33 @@ def get_files_properties(data: HTTPServerRequest) -> list[str]:
         filenames.append(str_filename)
 
     return filenames
-class Files_Scanner(IAttack_Scanner):
-    @staticmethod
-    def scan(data: HTTPServerRequest) -> bool:
-        """levels for -
-        block anyone who tries php files - 1
-        block anyone who tries to upload files that are not in the waf format - 2"""
 
+class Files_Scanner(IAttack_Scanner):
+
+
+    @staticmethod
+    def search_file_traversal(data : HTTPServerRequest) -> bool:
+        url:str = data.uri
+        decoded_url:str = urllib.parse.unquote(url)
+        #prase the url and check for ../#
+        return "../" in decoded_url or "..\\" in decoded_url
+
+    @staticmethod
+    def search_file_formats(data: HTTPServerRequest) -> bool:
         ### we still didn't implement the defend level in param in func ###
         attack_defend_level = 2
 
         filenames = get_files_properties(data)
         if filenames == ATTACKER_RETURN:
-            return True###if during the file prasing something that really does not suppose to happen actually happend
+            return True  ###if during the file prasing something that really does not suppose to happen actually happend
 
-        allowed_file_extentions = [".png", ".jpg", ".docx", ".jpeg", ".jiff", ".pdf",".txt"]
+        allowed_file_extensions = [".png", ".jpg", ".docx", ".jpeg", ".jiff", ".pdf", ".txt"]
         for file_name in filenames:
             ### find the last accurance of '.' for extension
             index_extension = file_name.rfind(".")
             if index_extension == -1:
                 ### the file does not have an extention ###
-                continue###we will not block files without extensions
+                continue  ###we will not block files without extensions
             file_extension = file_name[index_extension:].lower()
             if "php" in file_extension and attack_defend_level > 0:
                 ### we do not want php files at all cost (just if the web explicitily allows)###
@@ -99,7 +106,18 @@ class Files_Scanner(IAttack_Scanner):
             ### check if in allowed format,
             # but if user mistakenly uploaded file that is not in the format,
             # should we really declare him as an attacker?
-            if file_extension not in allowed_file_extentions:
-                if attack_defend_level > 1:#for website pref table
+            if file_extension not in allowed_file_extensions:
+                if attack_defend_level > 1:  # for website pref table
                     return True
         return False
+    @staticmethod
+    def scan(data: HTTPServerRequest) -> bool:
+        """levels for -
+        block anyone who tries php files - 1
+        block anyone who tries to upload files that are not in the waf format - 2"""
+        if Files_Scanner.search_file_traversal(data):
+            return True
+        if Files_Scanner.search_file_formats(data):
+            return True
+        return False
+
