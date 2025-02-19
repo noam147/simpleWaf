@@ -297,16 +297,17 @@ def get_all_host_names():
     result = exec_command(command)
     return result
 #website_login:
-def _hash_password(password:str):
+def _hash_password(password:str) -> str:
+    password = password.encode()
     """func will encode the password before putting in db"""
     # maybe will be changes later into stronger hashing
-    return hashlib.sha256(password)
+    return str(hashlib.sha256(password).hexdigest())
 
 def verify_login_into_website_login(user_name:str,password:str) -> bool:
     """func will check if the user_name match the password in the db"""
     hashed_password = _hash_password(password)
     command = """
-        SELECT ip_address FROM websites_login where user_name = %s AND hashed_password = %s
+        SELECT ip_address FROM website_login where user_name = %s AND hashed_password = %s
         """
     args = (user_name,hashed_password)
     result = exec_command(command,args)
@@ -320,14 +321,26 @@ def insert_into_website_login(host_name:str, user_name:str, password:str, email:
     false - if there is an exsisting user name or other problem"""
     hashed_password = _hash_password(password)
     command = """
-            INSERT INTO websites_ip (host_name, user_name,hashed_password, email)
+            INSERT INTO website_login (host_name, user_name,hashed_password, email)
             VALUES (%s, %s, %s, %s)"""
     args = (host_name,user_name,hashed_password,email)
     result = exec_command(command,args)
     if result == ERROR_WITH_DB_EXEC_COMMAND_CODE:
         return False
     return True
+def check_if_username_exist_in_website_login(username:str) ->bool:
 
+    print_table_values("website_login")
+    command = """
+            SELECT * FROM website_login where user_name = %s
+            """
+    args = (username,)
+    result = exec_command(command,args)
+    print("resualt is:")
+    print(result)
+    if len(result) == 0:
+        return False
+    return True
 ###  preferences table ###
 
 from Preferences_Items import  Preferences_Items
