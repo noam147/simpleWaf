@@ -172,7 +172,7 @@ class WAFRequestHandler(RequestHandler):
             return
 
         # Construct the target URL
-        new_url = f"{self.request.protocol}://{website_ip}:{EXAMPLE_WEBSITE_PORT}/{path}"
+        new_url = f"{self.request.protocol}://{website_ip}:80/{path}"
         ##without port ###
         #maybe we should put port in prefrences table...
         # new_url = f"{self.request.protocol}://{website_ip}/{path}"
@@ -261,13 +261,22 @@ class WAFRequestHandler(RequestHandler):
                 self.connections[ip_address].remove(self)
             if not self.connections[ip_address]:
                 del self.connections[ip_address]
+    def add_clickjacking_defence(self,response: HTTPResponse):
+        ##### CLICKJACKING #####
+        ### this is old header that sometimes does not work ###
+        response.headers.add("X-Frame-Options", "DENY")
+        ### this is the new and imporved header that really work ###
+        response.headers.add("Content-Security-Policy", "frame-ancestors 'none';")
 
     def _write_response(self, response: HTTPResponse):
+
+        self.add_clickjacking_defence(response)
         if not self._finished:
             for header, value in response.headers.get_all():
                 if header.lower() not in ("content-length", "transfer-encoding", "content-encoding"):
                     self.set_header(header, value)
-            self.write(response.body)
+            if response.code != 304:
+                self.write(response.body)
             self.finish()
             self._finished = True
         #defend clickjacking:
@@ -275,7 +284,7 @@ class WAFRequestHandler(RequestHandler):
         #self.request.headers["X-Frame-Options"] = "SAME-ORIGIN"
         #this is the msg from the client to the server, we want the msg from server to client thus:
         #right way:
-        self.set_header("X-Frame-Options", "SAMEORIGIN")
+        #self.set_header("X-Frame-Options", "SAMEORIGIN")
 
 
 
@@ -296,13 +305,13 @@ def make_app():
 
 
 if __name__ == "__main__":
-    DB_Wrapper.db_config = {
+    """DB_Wrapper.db_config = {
         "host": "localhost",
         "user": "root",
         "password": "guytu0908",
         "database": "wafDataBase"
 
-    }
+    }"""
     #delete attacker for testing at start
     DB_Wrapper.delete_attacker("127.0.0.1")
     import DDOS_Scanner
