@@ -176,13 +176,18 @@ class WAFRequestHandler(RequestHandler):
 
         ### need optimazation - to not fetch from db each time... ###
         pref_of_host_name_in_memory = Preferences.get_preferences_of_website(host_name)
-        #fetching from db:
-        #pref_of_host_name_from_db = DB_Wrapper.get_preferences_by_host_name(host_name)
-        if pref_of_host_name_in_memory.isHttps:
-            new_url = "https://"
+        if pref_of_host_name_in_memory == None:
+            DB_Wrapper.print_table_values("preferences")
+            print("NEED TO ENTER PREF FOR THIS WEB: "+host_name)
+            new_url = f"https://{website_ip}/{path}"
         else:
-            new_url = "http://"
-        new_url+= f"{website_ip}:{pref_of_host_name_in_memory.port}/{path}"
+            #fetching from db:
+            #pref_of_host_name_from_db = DB_Wrapper.get_preferences_by_host_name(host_name)
+            if pref_of_host_name_in_memory.isHttps:
+                new_url = "https://"
+            else:
+                new_url = "http://"
+            new_url+= f"{website_ip}:{pref_of_host_name_in_memory.port}/{path}"
 
 
         if self.request.query_arguments:
@@ -328,7 +333,7 @@ if __name__ == "__main__":
     DB_Wrapper.delete_attacker("127.0.0.1")
     import DDOS_Scanner
     DDOS_Scanner.DDOSScanner.activate_at_start()
-
+    Preferences.at_start()
 
     app = make_app()
     app.listen(PORT_APP)
