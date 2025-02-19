@@ -211,12 +211,17 @@ class WAFRequestHandler(RequestHandler):
 
             # csrf protection
             response.headers.add("X-CSRFToken", self.xsrf_token)
-            new_response_body = csrf_token_helper.inject_token_to_html(response.body.decode(), self.xsrf_form_html())
+            if isinstance(response.body, bytes):
+                ### for imgs or files, we do not need to even check for forms ###
+                new_response_body = response.body  # Keep binary data unchanged
+            else:
+                new_response_body = csrf_token_helper.inject_token_to_html(response.body.decode(), self.xsrf_form_html())
+
             modified_response = HTTPResponse(
                 request=HTTPRequest(response.effective_url),
                 code=response.code,
                 headers=httputil.HTTPHeaders(response.headers),
-                buffer=BytesIO(new_response_body.encode()),  # New response body
+                buffer=BytesIO(new_response_body if isinstance(response.body, bytes) else new_response_body.decode()),  # New response body
                 request_time=response.request_time
             )
             self.set_status(response.code)
