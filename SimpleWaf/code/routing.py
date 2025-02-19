@@ -272,8 +272,16 @@ class WAFRequestHandler(RequestHandler):
                 self.connections[ip_address].remove(self)
             if not self.connections[ip_address]:
                 del self.connections[ip_address]
+    def add_clickjacking_defence(self,response: HTTPResponse):
+        ##### CLICKJACKING #####
+        ### this is old header that sometimes does not work ###
+        response.headers.add("X-Frame-Options", "DENY")
+        ### this is the new and imporved header that really work ###
+        response.headers.add("Content-Security-Policy", "frame-ancestors 'none';")
 
     def _write_response(self, response: HTTPResponse):
+
+        self.add_clickjacking_defence(response)
         if not self._finished:
             for header, value in response.headers.get_all():
                 if header.lower() not in ("content-length", "transfer-encoding", "content-encoding"):
@@ -288,7 +296,7 @@ class WAFRequestHandler(RequestHandler):
         #self.request.headers["X-Frame-Options"] = "SAME-ORIGIN"
         #this is the msg from the client to the server, we want the msg from server to client thus:
         #right way:
-        self.set_header("X-Frame-Options", "SAMEORIGIN")
+        #self.set_header("X-Frame-Options", "SAMEORIGIN")
 
 
 
@@ -309,7 +317,6 @@ def make_app():
 
 
 if __name__ == "__main__":
-
     """DB_Wrapper.db_config = {
         "host": "localhost",
         "user": "root",
