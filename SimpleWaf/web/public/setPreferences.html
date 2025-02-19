@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <form id="setPreferencesForm">
+        <!--
+        host_name VARCHAR(255) UNIQUE,
+        sql_strictness INTEGER,
+        xss_defence  BOOL,
+        hpp_defence BOOL,
+        file_attacks_level INTEGER,
+        send_email_when_attacked BOOL,
+        os_level INTEGER
+-->
+        <input type="text" id="hostNameInput" placeholder="website host name"><br><br>
+        <input type="text" id="userNameInput" placeholder="user name"><br><br>
+        <input type="number" id="sql_strictness" placeholder="Enter number from 0-3"><br><br>
+        <input type="checkbox" id="alertEmailCheckBox">
+        <label for="emailInput">Alert to email when an attack is found</label><br><br>
+        <input type="checkbox" id="xss_defenceCheckBox">
+        <label for="xss_defence">Protect xss</label><br><br>
+        <input type="submit" id="submitBtn">
+    </form>
+    <div id="msgResult"></div>
+
+    <script src="setPreferences.js"></script>
+</body>
+</html>
