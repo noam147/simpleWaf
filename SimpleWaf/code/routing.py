@@ -174,7 +174,6 @@ class WAFRequestHandler(RequestHandler):
             self.send_empty_msg_with_code(ATTACK_FOUND_CODE)
             return
 
-<<<<<<< SimpleWaf/code/routing.py
         ### need optimazation - to not fetch from db each time... ###
         pref_of_host_name_in_memory = Preferences.get_preferences_of_website(host_name)
         #fetching from db:
@@ -184,15 +183,7 @@ class WAFRequestHandler(RequestHandler):
         else:
             new_url = "http://"
         new_url+= f"{website_ip}:{pref_of_host_name_in_memory.port}/{path}"
-=======
-        # Construct the target URL
-        new_url = f"{self.request.protocol}://{website_ip}:{EXAMPLE_WEBSITE_PORT}/{path}"
-        ##without port ###
-        #maybe we should put port in prefrences table...
-        # new_url = f"{self.request.protocol}://{website_ip}/{path}"
-        
-        # For production: new_url = f"{self.request.protocol}://{website_ip}/{path}"
->>>>>>> SimpleWaf/code/routing.py
+
 
         if self.request.query_arguments:
             query_string = urlencode({k: v[0].decode() for k, v in self.request.query_arguments.items()})
@@ -318,22 +309,14 @@ def make_app():
 
 
 if __name__ == "__main__":
-<<<<<<< SimpleWaf/code/routing.py
-    #delete attacker for testing at start
-    DB_Wrapper.delete_attacker("127.0.0.1")
-    import DDOS_Scanner
-    DDOS_Scanner.DDOSScanner.activate_at_start()
-    Preferences.at_start()
-    """DB_Wrapper.db_config ={
-=======
-    DB_Wrapper.db_config = {
->>>>>>> SimpleWaf/code/routing.py
+
+    """DB_Wrapper.db_config = {
         "host": "localhost",
         "user": "root",
         "password": "guytu0908",
         "database": "wafDataBase"
 
-    }
+    }"""
     #delete attacker for testing at start
     DB_Wrapper.delete_attacker("127.0.0.1")
     import DDOS_Scanner
