@@ -172,7 +172,7 @@ class WAFRequestHandler(RequestHandler):
             return
 
         # Construct the target URL
-        new_url = f"{self.request.protocol}://{website_ip}:80/{path}"
+        new_url = f"{self.request.protocol}://{website_ip}:{EXAMPLE_WEBSITE_PORT}/{path}"
         ##without port ###
         #maybe we should put port in prefrences table...
         # new_url = f"{self.request.protocol}://{website_ip}/{path}"
