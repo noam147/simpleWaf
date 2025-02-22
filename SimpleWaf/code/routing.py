@@ -5,6 +5,8 @@ from tornado.httpclient import AsyncHTTPClient, HTTPRequest, HTTPResponse, httpu
 from tornado.escape import json_decode
 import DB_Wrapper
 from urllib.parse import urlparse, urlencode
+
+import csrf_token_helper
 import slow_loris_detect
 from SearchAttackHelper import SearchAttacks
 from vars_for_global_use import *
@@ -13,7 +15,11 @@ from collections import defaultdict
 import time
 from datetime import datetime
 import logger
+from Preferences import Preferences
+import urllib.parse
 import inspect
+import socket
+from io import BytesIO
 
 PORT_APP = 5000
 EXAMPLE_WEBSITE_PORT = 5001
@@ -109,6 +115,10 @@ class WAFRequestHandler(RequestHandler):
             IOLoop.current().add_callback(self.stop_connections_for_ip, ip_address)
             self.send_empty_msg_with_code(ATTACK_FOUND_CODE)
 
+            self.alert_to_logger(self.request.host_name, ip_attacker=ip_address, attack_method="SLOW_LORIS")
+            DB_Wrapper.when_find_attacker(ip_address)
+
+
     async def forward_request(self, new_url, method, body=None, headers=None):
         client = AsyncHTTPClient()
         try:
@@ -120,6 +130,8 @@ class WAFRequestHandler(RequestHandler):
             )
             response = await client.fetch(request, raise_error=False)
             return response
+        except socket.error as e:
+            print("Error forwarding request: website is not reachable")
         except Exception as e:
             print(f"Error forwarding request: {e}")
             return None
@@ -162,26 +174,61 @@ class WAFRequestHandler(RequestHandler):
             self.send_empty_msg_with_code(ATTACK_FOUND_CODE)
             return
 
-        # Construct the target URL
-        new_url = f"{self.request.protocol}://{website_ip}:{EXAMPLE_WEBSITE_PORT}/{path}"
-        # For production: new_url = f"{self.request.protocol}://{website_ip}/{path}"
+        ### need optimazation - to not fetch from db each time... ###
+        pref_of_host_name_in_memory = Preferences.get_preferences_of_website(host_name)
+        if pref_of_host_name_in_memory == None:
+            DB_Wrapper.print_table_values("preferences")
+            print("NEED TO ENTER PREF FOR THIS WEB: "+host_name)
+            new_url = f"https://{website_ip}/{path}"
+        else:
+            #fetching from db:
+            #pref_of_host_name_from_db = DB_Wrapper.get_preferences_by_host_name(host_name)
+            if pref_of_host_name_in_memory.isHttps:
+                new_url = "https://"
+            else:
+                new_url = "http://"
+            new_url+= f"{website_ip}:{pref_of_host_name_in_memory.port}/{path}"
+
+
         if self.request.query_arguments:
             query_string = urlencode({k: v[0].decode() for k, v in self.request.query_arguments.items()})
             new_url = f"{new_url}?{query_string}"
+
+
+        ### for non aski characters in a url (like chrs in hebrew)###
+        new_url = urllib.parse.quote(new_url, safe=":/")
 
         return new_url
 
     async def get(self, path):
         new_url = await self.prepare_request(path)
+
         if new_url:
             response = await self.forward_request(new_url, "GET", headers=self.request.headers)
             if not response:
                 self.send_empty_msg_with_code(WEBSITE_NOT_RESPONDING_CODE)
                 return
+
+            # csrf protection
+            response.headers.add("X-CSRFToken", self.xsrf_token)
+            if isinstance(response.body, bytes):
+                ### for imgs or files, we do not need to even check for forms ###
+                new_response_body = response.body  # Keep binary data unchanged
+            else:
+                new_response_body = csrf_token_helper.inject_token_to_html(response.body.decode(), self.xsrf_form_html())
+
+            modified_response = HTTPResponse(
+                request=HTTPRequest(response.effective_url),
+                code=response.code,
+                headers=httputil.HTTPHeaders(response.headers),
+                buffer=BytesIO(new_response_body if isinstance(response.body, bytes) else new_response_body.decode()),  # New response body
+                request_time=response.request_time
+            )
             self.set_status(response.code)
-            self._write_response(response)
+            self._write_response(modified_response)
 
     async def post(self, path):
+
         new_url = await self.prepare_request(path)
         if new_url:
             response = await self.forward_request(new_url, "POST", body=self.request.body, headers=self.request.headers)
@@ -288,8 +335,16 @@ class WAFRequestHandler(RequestHandler):
                 self.connections[ip_address].remove(self)
             if not self.connections[ip_address]:
                 del self.connections[ip_address]
+    def add_clickjacking_defence(self,response: HTTPResponse):
+        ##### CLICKJACKING #####
+        ### this is old header that sometimes does not work ###
+        response.headers.add("X-Frame-Options", "DENY")
+        ### this is the new and imporved header that really work ###
+        response.headers.add("Content-Security-Policy", "frame-ancestors 'none';")
 
     def _write_response(self, response: HTTPResponse):
+
+        self.add_clickjacking_defence(response)
         if not self._finished:
             for header, value in response.headers.get_all():
                 if header.lower() not in ("content-length", "transfer-encoding", "content-encoding"):
@@ -298,6 +353,17 @@ class WAFRequestHandler(RequestHandler):
             self.write(response.body)
             self.finish()
             self._finished = True
+            if response.code != 304:
+                ### in 304 we do not have a body ###
+                self.write(response.body)
+            self.finish()
+            self._finished = True
+        #defend clickjacking:
+        #wrong way:
+        #self.request.headers["X-Frame-Options"] = "SAME-ORIGIN"
+        #this is the msg from the client to the server, we want the msg from server to client thus:
+        #right way:
+        #self.set_header("X-Frame-Options", "SAMEORIGIN")
 
 
     def _write_response(self, response: HTTPResponse):
@@ -315,12 +381,14 @@ def make_app():
     connections = defaultdict(list)
     connection_timeout_handles = defaultdict(lambda: None)
     chunk_timeout_handles = defaultdict(lambda: None)
-
+    settings = {
+        "xsrf_cookies": True,
+    }
     return Application([
         (r"/(.*)", WAFRequestHandler,
          dict(connections=connections, connection_timeout_handles=connection_timeout_handles,
               chunk_timeout_handles=chunk_timeout_handles)),
-    ])
+    ], **settings)
 
 
 if __name__ == "__main__":
@@ -328,12 +396,18 @@ if __name__ == "__main__":
     DB_Wrapper.delete_attacker("127.0.0.1")
     import DDOS_Scanner
     DDOS_Scanner.DDOSScanner.activate_at_start()
-    DB_Wrapper.db_config ={
+    """DB_Wrapper.db_config = {
         "host": "localhost",
         "user": "root",
         "password": "guytu0908",
         "database": "wafDataBase"
-    }
+    }"""
+
+    #delete attacker for testing at start
+    DB_Wrapper.delete_attacker("127.0.0.1")
+    import DDOS_Scanner
+    DDOS_Scanner.DDOSScanner.activate_at_start()
+    Preferences.at_start()
     app = make_app()
     app.listen(PORT_APP)
     print(f"Running Tornado app on port {PORT_APP}")

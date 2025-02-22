@@ -117,7 +117,7 @@ def create_tables()->None:
     """
     website_login = """
     CREATE TABLE IF NOT EXISTS website_login (
-    host_name VARCHAR(255) UNIQUE,
+    host_name VARCHAR(255),
     user_name VARCHAR(64) UNIQUE,
     hashed_password VARCHAR(64),
     email VARCHAR(128)    
@@ -138,11 +138,18 @@ def create_tables()->None:
         )
         """
 
+### see documitation in Mismah Efion ###
     preferences_table = """
     CREATE TABLE IF NOT EXISTS preferences (
         host_name VARCHAR(255) UNIQUE,
         sql_strictness INTEGER,
-        send_email_when_attacked BOOL
+        xss_defence  BOOL,
+        hpp_defence BOOL,
+        file_attacks_level INTEGER,
+        send_email_when_attacked BOOL,
+        os_level INTEGER,
+        port INTEGER,
+        isHttps BOOL
         )
         """
 
@@ -283,18 +290,24 @@ def get_ip_address_by_host_name(host_name:str)->str:
     except Exception as e:
         print(e)
         return ERROR_IP_ADDRESS
-
+def get_all_host_names():
+    command = """
+            SELECT host_name FROM websites_ip
+            """
+    result = exec_command(command)
+    return result
 #website_login:
-def _hash_password(password:str):
+def _hash_password(password:str) -> str:
+    password = password.encode()
     """func will encode the password before putting in db"""
     # maybe will be changes later into stronger hashing
-    return hashlib.sha256(password)
+    return str(hashlib.sha256(password).hexdigest())
 
 def verify_login_into_website_login(user_name:str,password:str) -> bool:
     """func will check if the user_name match the password in the db"""
     hashed_password = _hash_password(password)
     command = """
-        SELECT ip_address FROM websites_login where user_name = %s AND hashed_password = %s
+        SELECT ip_address FROM website_login where user_name = %s AND hashed_password = %s
         """
     args = (user_name,hashed_password)
     result = exec_command(command,args)
@@ -308,16 +321,72 @@ def insert_into_website_login(host_name:str, user_name:str, password:str, email:
     false - if there is an exsisting user name or other problem"""
     hashed_password = _hash_password(password)
     command = """
-            INSERT INTO websites_ip (host_name, user_name,hashed_password, email)
+            INSERT INTO website_login (host_name, user_name,hashed_password, email)
             VALUES (%s, %s, %s, %s)"""
     args = (host_name,user_name,hashed_password,email)
     result = exec_command(command,args)
     if result == ERROR_WITH_DB_EXEC_COMMAND_CODE:
         return False
     return True
+def check_if_username_exist_in_website_login(username:str) ->bool:
 
+    print_table_values("website_login")
+    command = """
+            SELECT * FROM website_login where user_name = %s
+            """
+    args = (username,)
+    result = exec_command(command,args)
+    print("resualt is:")
+    print(result)
+    if len(result) == 0:
+        return False
+    return True
 ###  preferences table ###
-def special_insert_or_update_preferences_table() -> None:
-    pass
-def get_preferences_by_host_name(host_name:str):
-    pass
+
+from Preferences_Items import  Preferences_Items
+def special_insert_or_update_preferences_table_preferences_table(prefs:Preferences_Items) ->None:
+    """get the strings and send to the actual func"""
+    command = """
+                    INSERT INTO preferences (host_name, sql_strictness, xss_defence, hpp_defence,
+                                              file_attacks_level, send_email_when_attacked, os_level,port,isHttps)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s,%s,%s)
+                    ON DUPLICATE KEY UPDATE
+                        sql_strictness = VALUES(sql_strictness),
+                        xss_defence = VALUES(xss_defence),
+                        hpp_defence = VALUES(hpp_defence),
+                        file_attacks_level = VALUES(file_attacks_level),
+                        send_email_when_attacked = VALUES(send_email_when_attacked),
+                        os_level = VALUES(os_level),
+                        port = VALUES(port),
+                        isHttps = VALUES(isHttps)
+                    """
+    args = (prefs.host_name,prefs.sql_level,prefs.xss_defence,prefs.hpp_defence,prefs.file_attack_level,prefs.to_send_email,prefs.os_level,prefs.port,prefs.isHttps)
+    exec_command(command, args)
+
+def get_preferences_by_host_name(host_name:str) -> Preferences_Items:
+    """func will get the pref of a host name
+    if the host name does not exsit the func will output a default prefrences"""
+
+    ### todo checnage this from hard coded to SQL.STRICTfor example
+    defualt_prefs = [(host_name,3,True,True,3,True,1,443,True)]
+    def_prefs_in_class = Preferences_Items(defualt_prefs)
+    command = """
+            SELECT * FROM preferences where host_name = %s
+            """
+    args = (host_name,)
+    result = exec_command(command,args)
+    if result == None or result == []:
+        return def_prefs_in_class
+    pref_in_class:Preferences_Items = Preferences_Items(result)
+    return pref_in_class
+
+
+
+def at_start():
+    ###activate this func and after that delete it or something...###
+    drop_table("preferences")
+    create_tables()
+    a:Preferences_Items = Preferences_Items([("phisherWeb.com",2,True,True,3,True,1,80,False)])
+    #print(a.to_string())
+    special_insert_or_update_preferences_table_preferences_table(a)
+    print(get_preferences_by_host_name("phisherWeb.com").to_string())

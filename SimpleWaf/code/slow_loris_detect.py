@@ -1,15 +1,12 @@
 
-MAX_CONNECTION_NUMBER = 5
+MAX_CONNECTION_NUMBER = 19
 MINIMAL_CHUNK_SIZE = 20  # in bytes
 MAX_CONNECTION_TIME = 20  # in seconds
 MAX_TIME_BETWEEN_CHUNKS = 4  # in seconds
 
 
 def check_connection(connection_number: int):
-<<<<<<< HEAD
-    print(connection_number)
-=======
->>>>>>> c81f28f (fixed conflict in routing)
+    print("same ip address connected: "+str(connection_number)+" times")
     if connection_number > MAX_CONNECTION_NUMBER:
         return False
     return True
