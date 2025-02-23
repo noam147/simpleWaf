@@ -29,15 +29,32 @@ class CommandInjectionRule(AttackRule):
     pass
 
 SQLI_REGEX: List[SqliRule] = [
-    SqliRule(r"(?i)\b(?:OR|AND)\b\s+((.*?)=(.*?)|TRUE|FALSE|NULL)", 2.0, StrictnessLevel.MID),
+    SqliRule(r"(?i)\b(?:OR|AND)\b\s+(.*?)\s*((=|>|<)(\s*?)(.*?)|TRUE|FALSE|NULL)", 2.0, StrictnessLevel.MID),
     SqliRule(r"(?i)\bUNION\b.*\bSELECT\b", 2.0, StrictnessLevel.MID),
     SqliRule(r";.*--", 1.0, StrictnessLevel.STRICT),
     SqliRule(r"(?i)\b(SLEEP|BENCHMARK)\b\s*\(.*\)", 2.0, StrictnessLevel.MID),
     SqliRule(r"(?i)--\s*$", 1.0, StrictnessLevel.STRICT),
     SqliRule(r"(?i)\b(exec)", 1.0, StrictnessLevel.STRICT),
-    SqliRule(r"(?i)\b(xp_regraded)", 1.0, StrictnessLevel.STRICT),
+    SqliRule(r"(?i)\b(xp_regread)", 1.0, StrictnessLevel.STRICT),
     SqliRule(r"(?i)\b(waitfor)", 1.0, StrictnessLevel.STRICT),
     SqliRule(r"(?i)\b(delay)", 1.0, StrictnessLevel.STRICT),
+    SqliRule(r"(?i)\b(SELECT|INSERT|UPDATE|DELETE|DROP|ALTER|EXEC|MERGE|CALL)\b.*\bFROM\b", 1.0, StrictnessLevel.STRICT),
+    SqliRule(r"(?i)\b(UNION|INTERSECT|MINUS|EXCEPT)\b\s*\b(ALL|DISTINCT)?\s*\bSELECT\b", 1.0, StrictnessLevel.MID),
+    SqliRule(r"(?i)\b(CREATE|ALTER|DROP)\b\s+\b(TABLE|DATABASE|VIEW|FUNCTION|PROCEDURE)\b", 2.0,
+             StrictnessLevel.STRICT),
+    SqliRule(r"(?i)\b(INSERT|REPLACE)\b\s+INTO\b\s+[^\s]+\s+\(.*?\)\s*VALUES", 1.0, StrictnessLevel.MID),
+    SqliRule(r"(?i)\b(pg_sleep)", 1.0, StrictnessLevel.STRICT),
+    SqliRule(r"(?i)\b(select)*\b(into)", 1.0, StrictnessLevel.STRICT),
+    SqliRule(r"(?i)\b(select).*\b(into)\s\b(temp)", 1.0, StrictnessLevel.STRICT),
+    SqliRule(r"(?i)\b@\S*\s+\b(as)\s+\b(var|user|admin|password|username|main|email|gmail|temp)", 1.0, StrictnessLevel.STRICT),
+    SqliRule(r"(?i)\b(exec)\s+\b(xp_cmdshell)", 1.0, StrictnessLevel.STRICT),
+    SqliRule(r"(?i)\b(xp_cmdshell)", 1.0, StrictnessLevel.STRICT),
+    SqliRule(r"(?i)\b(declare)\s+@.*", 1.0, StrictnessLevel.STRICT),
+    SqliRule(r"(?i)\b(declare)\s+.*\s+\b(varchar|int|bigint|tinyint|smallint|real|decimal|numeric|char|string|str|chr|float|double|text|nvarchar|ntext|date|time|datetime|timestamp|datetime2|smalldatetime|datetimeoffset|bit|money|smallmoney|binary|image|varbinary)", 1.0, StrictnessLevel.STRICT),
+    SqliRule(r"(?i)\b(like)\s+'%.*", 2.0, StrictnessLevel.STRICT),
+    SqliRule(r"(?i)\b(or)\s*.*(--|;|#)", 2.0, StrictnessLevel.STRICT),
+    SqliRule(r"(?i)\b(group)\s+\b(by)\s+.*\b(having|where)\s*(.*?)(\s*?)=(\s*?)(.*?)", 1.0, StrictnessLevel.MID),
+    SqliRule(r"(?i)\b(or)\s+(.*?)\s+\b(between)\s+(.*?)\s+\b(and)\s+(.*?)", 1.0, StrictnessLevel.MID),
 ]
 
 ### for linux os ###
