@@ -20,7 +20,7 @@ import urllib.parse
 import inspect
 import socket
 from io import BytesIO
-
+import memory_handler
 PORT_APP = 5000
 EXAMPLE_WEBSITE_PORT = 5001
 
@@ -51,6 +51,7 @@ class WAFRequestHandler(RequestHandler):
         ### for testing ###
         #if ip_add == "127.0.0.1":
         #    return False
+        return memory_handler.get_is_ip_attacker(ip_add)
         return DB_Wrapper.is_ip_blocked(ip_add)
 
     def alert_to_logger(self, host_name: str, ip_attacker: str, attack_method: str):
@@ -151,8 +152,10 @@ class WAFRequestHandler(RequestHandler):
 
         # Get website IP from DB
         host_name = urlparse(self.request.full_url()).hostname
-        website_ip = DB_Wrapper.get_ip_address_by_host_name(host_name.decode())
-        if not website_ip or website_ip == DB_Wrapper.ERROR_IP_ADDRESS:
+
+        website_ip = memory_handler.get_ip_by_host_name(host_name)
+        #website_ip = DB_Wrapper.get_ip_address_by_host_name(host_name.decode())
+        if not website_ip:
             print("Website does not exist")
             self.send_empty_msg_with_code(WEBSITE_NOT_EXIST_CODE)
             return
@@ -167,15 +170,22 @@ class WAFRequestHandler(RequestHandler):
             pass
         else:#if there was an attack
             #alert db
+
+            ### todo - send to the server the creds of attacker so that the serve can save it in his db
             DB_Wrapper.when_find_attacker(ip_address)
+
+            free_date = DB_Wrapper.calc_attacker_free_date(ip_address,1)
+            memory_handler.data_dict[memory_handler.ATTACKERS][ip_address] = free_date
+
             #alert logger
-            self.alert_to_logger(host_name.decode(), ip_attacker=ip_address, attack_method=name_of_attack)
+            self.alert_to_logger(host_name, ip_attacker=ip_address, attack_method=name_of_attack)
             #abort request
             self.send_empty_msg_with_code(ATTACK_FOUND_CODE)
             return
 
         ### need optimazation - to not fetch from db each time... ###
         pref_of_host_name_in_memory = Preferences.get_preferences_of_website(host_name)
+        #memory_handler.data_dict[Preferences]
         if pref_of_host_name_in_memory == None:
             DB_Wrapper.print_table_values("preferences")
             print("NEED TO ENTER PREF FOR THIS WEB: "+host_name)
@@ -210,12 +220,8 @@ class WAFRequestHandler(RequestHandler):
                 return
 
             # csrf protection
-            response.headers.add("X-CSRFToken", self.xsrf_token)
-            if isinstance(response.body, bytes):
-                ### for imgs or files, we do not need to even check for forms ###
-                new_response_body = response.body  # Keep binary data unchanged
-            else:
-                new_response_body = csrf_token_helper.inject_token_to_html(response.body.decode(), self.xsrf_form_html())
+            #response.headers.add("X-CSRFToken", self.xsrf_token)
+            new_response_body = response.body  # Keep binary data unchanged
 
             modified_response = HTTPResponse(
                 request=HTTPRequest(response.effective_url),
@@ -245,7 +251,7 @@ class WAFRequestHandler(RequestHandler):
         if not slow_loris_detect.check_chunk(len(chunk)):
             print(f"Blocked a tiny message from IP {ip_address}")
             self.send_empty_msg_with_code(ATTACK_FOUND_CODE)
-            self.alert_to_logger(host_name.decode(),ip_address,"Slow_Loris")
+            self.alert_to_logger(host_name,ip_address,"Slow_Loris")
             if self.request.connection.stream:
                 self.request.connection.stream.close()
             return
@@ -371,8 +377,9 @@ class WAFRequestHandler(RequestHandler):
             for header, value in response.headers.get_all():
                 if header.lower() not in ("content-length", "transfer-encoding", "content-encoding"):
                     self.set_header(header, value)
-            self.before_request_to_client()  # here apply rules
-            self.write(response.body)
+            #self.before_request_to_client()  # here apply rules
+            if response.code != 304:
+                self.write(response.body)
             self.finish()
             self._finished = True
 
@@ -382,7 +389,7 @@ def make_app():
     connection_timeout_handles = defaultdict(lambda: None)
     chunk_timeout_handles = defaultdict(lambda: None)
     settings = {
-        "xsrf_cookies": True,
+        "xsrf_cookies": False,
     }
     return Application([
         (r"/(.*)", WAFRequestHandler,
@@ -392,8 +399,13 @@ def make_app():
 
 
 if __name__ == "__main__":
-    #delete attacker for testing at start
+    # delete attacker for testing at start
     DB_Wrapper.delete_attacker("127.0.0.1")
+
+    ## todo change this when we have the working func of getting data from server
+    memory_handler.example_of_getting_data()
+
+
     import DDOS_Scanner
     DDOS_Scanner.DDOSScanner.activate_at_start()
     """DB_Wrapper.db_config = {
