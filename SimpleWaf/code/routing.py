@@ -370,7 +370,7 @@ def make_app():
     connection_timeout_handles = defaultdict(lambda: None)
     chunk_timeout_handles = defaultdict(lambda: None)
     settings = {
-        "xsrf_cookies": True,
+        #"xsrf_cookies": True,
     }
     return Application([
         (r"/(.*)", WAFRequestHandler,
