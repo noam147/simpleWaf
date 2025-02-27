@@ -21,12 +21,12 @@ class DDOSScanner(IAttack_Scanner):
     _MAX_NUMBER_OF_REQUESTS_PER_SECOND = 15
     _ip_addresses_and_amount_of_requests:dict = {}
     _webs_and_msgs:dict = {} #value- hostname:str; key- number of msgs to this hostname
-    _lock = threading.Lock()#for thread clearing the dict
+    ### there is GIL in cpython and thus we do not need to be afraid to insert to dict even though we use detach threads
+
     @staticmethod
     def _clear_scan():
         """func will clear the dict - use lock to prevent inserting/updating dict at same time"""
-        with DDOSScanner._lock:
-            DDOSScanner._ip_addresses_and_amount_of_requests.clear()
+        DDOSScanner._ip_addresses_and_amount_of_requests.clear()
     @staticmethod
     def activate_at_start():
         t = threading.Thread(target=DDOSScanner.__thread_clear_scan,daemon=True)
@@ -51,18 +51,24 @@ class DDOSScanner(IAttack_Scanner):
         except Exception:
             print("can")
             return True#if we can't accsess the ip - this is an attacker
-        with DDOSScanner._lock:
-            ### insert ip to dict ###
-            if ip_address not in DDOSScanner._ip_addresses_and_amount_of_requests:
-                #if ip not in the dict
-                DDOSScanner._ip_addresses_and_amount_of_requests[ip_address] = 1
-            else:
-                DDOSScanner._ip_addresses_and_amount_of_requests[ip_address] += 1
-            ### check if ip passed the limit of requests per second ###
-            if DDOSScanner._ip_addresses_and_amount_of_requests[ip_address] > DDOSScanner._MAX_NUMBER_OF_REQUESTS_PER_SECOND:
-                print("attackerrrrr, ip= "+ip_address)
-                return True
-            return False
+        ### there is GIL in cpython and thus we do not need to be afraid to insert to dict even though we use detach threads
+
+        if host_name not in DDOSScanner._webs_and_msgs:
+            ### maybe insert also the ip or something, but probably general dict of ip will do the job
+            DDOSScanner._webs_and_msgs[host_name] = 1
+        else:
+            DDOSScanner._webs_and_msgs[host_name] += 1
+        ### insert ip to dict ###
+        if ip_address not in DDOSScanner._ip_addresses_and_amount_of_requests:
+            #if ip not in the dict
+            DDOSScanner._ip_addresses_and_amount_of_requests[ip_address] = 1
+        else:
+            DDOSScanner._ip_addresses_and_amount_of_requests[ip_address] += 1
+        ### check if ip passed the limit of requests per second ###
+        if DDOSScanner._ip_addresses_and_amount_of_requests[ip_address] > DDOSScanner._MAX_NUMBER_OF_REQUESTS_PER_SECOND:
+            print("attackerrrrr, ip= "+ip_address)
+            return True
+        return False
 
 
 def check_ddos():
