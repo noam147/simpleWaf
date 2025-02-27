@@ -5,9 +5,22 @@ import requests
 from tornado.httputil import HTTPServerRequest
 """method of find attack - get a dict that saves - ip_add with number of requests, if goes over N requests - this is ddos"""
 """will be a scanner each second to clear the dict"""
+
+# new method is to see when webs gets 'full' -
+# we will create a dict of web and amount of msgs
+# each scan will take 5 minutes until reset
+
+# maybe the ddos scan will output diffrent things based on condition:
+# available conditions:
+# 1. Do not pass msg to server but do not block user (if the web is in full mode)
+# 2. Block user for a dat or something (do not sure when we actually want to block...)
+TIME_OF_SCAN_ON_MINUTES = 5
+NUM_ALLOWED_REQUESTS_PER_MIN = 100
+NUM_REQUESTS_UNTIL_WEB_FULL = TIME_OF_SCAN_ON_MINUTES * NUM_ALLOWED_REQUESTS_PER_MIN
 class DDOSScanner(IAttack_Scanner):
     _MAX_NUMBER_OF_REQUESTS_PER_SECOND = 15
     _ip_addresses_and_amount_of_requests:dict = {}
+    _webs_and_msgs:dict = {} #value- hostname:str; key- number of msgs to this hostname
     _lock = threading.Lock()#for thread clearing the dict
     @staticmethod
     def _clear_scan():
@@ -21,13 +34,19 @@ class DDOSScanner(IAttack_Scanner):
     @staticmethod
     def __thread_clear_scan():
         while True:
-            time.sleep(1)
+            time.sleep(TIME_OF_SCAN_ON_MINUTES*60)
             DDOSScanner._clear_scan()
+
+    @staticmethod
+    def is_big_msg(data: HTTPServerRequest) -> bool:
+        """func check if content is more than 10mb"""
+        return len(data.body) > 10 * 1024 * 1024  # 10mb in bytes
 
     @staticmethod
     def scan(data: HTTPServerRequest) -> bool:
         try:
             ip_address = data.remote_ip
+            host_name = data.host_name
             #ip_address = data.environ['REMOTE_ADDR']
         except Exception:
             print("can")
