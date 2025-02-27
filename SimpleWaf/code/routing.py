@@ -151,7 +151,7 @@ class WAFRequestHandler(RequestHandler):
 
         # Get website IP from DB
         host_name = urlparse(self.request.full_url()).hostname
-        website_ip = DB_Wrapper.get_ip_address_by_host_name(host_name.decode())
+        website_ip = DB_Wrapper.get_ip_address_by_host_name(host_name.decode() if isinstance(host_name,bytes) else host_name)
         if not website_ip or website_ip == DB_Wrapper.ERROR_IP_ADDRESS:
             print("Website does not exist")
             self.send_empty_msg_with_code(WEBSITE_NOT_EXIST_CODE)
@@ -349,10 +349,7 @@ class WAFRequestHandler(RequestHandler):
             for header, value in response.headers.get_all():
                 if header.lower() not in ("content-length", "transfer-encoding", "content-encoding"):
                     self.set_header(header, value)
-            self.before_request_to_client()
-            self.write(response.body)
-            self.finish()
-            self._finished = True
+            #self.before_request_to_client()
             if response.code != 304:
                 ### in 304 we do not have a body ###
                 self.write(response.body)
@@ -366,15 +363,6 @@ class WAFRequestHandler(RequestHandler):
         #self.set_header("X-Frame-Options", "SAMEORIGIN")
 
 
-    def _write_response(self, response: HTTPResponse):
-        if not self._finished:
-            for header, value in response.headers.get_all():
-                if header.lower() not in ("content-length", "transfer-encoding", "content-encoding"):
-                    self.set_header(header, value)
-            self.before_request_to_client()  # here apply rules
-            self.write(response.body)
-            self.finish()
-            self._finished = True
 
 
 def make_app():
