@@ -5,7 +5,7 @@ import tornado.escape
 import tornado.httputil
 # import sql checking
 import sys
-
+from Preferences_Items import Preferences_Items
 from DDOS_Scanner import DDOSScanner
 from File_Attack_Scanner import Files_Scanner
 from Command_Injection_Scanner import CommandInjectionScanner
@@ -18,78 +18,34 @@ class SearchAttacks:
     def __init__(self, msg_from_client: tornado.httputil.HTTPServerRequest):
         self.current_request = msg_from_client
 
-    def search_attacks(self) -> str:
+    def search_attacks(self,prefs_of_web:Preferences_Items) -> str:
         """
         Determines if a request contains attacks based on URL, headers, or body.
         :return: name of attack if an attack is detected (abort), empty string otherwise (pass through).
         """
-        if self.__search_sql(self.current_request):
+        if self.__search_sql(self.current_request, prefs_of_web.sql_level):
             return "SQL_INJECTION"
-        elif self.__search_ddos(self.current_request):
+        elif self.__search_ddos(self.current_request,1):
             return "DDOS"
-        if self.__search_files(self.current_request):
+        if self.__search_files(self.current_request,prefs_of_web.file_attack_level):
             return "FILE_UPLOAD"
-        elif self.__search_command_injection(self.current_request):
+        elif self.__search_command_injection(self.current_request,(prefs_of_web.os_level,1)):#todo add field of restriction to command injeciton
             return "COMMAND_INJECTION"
         return ""
 
-
-        # Check URL
-        if self.__search_in_url(self.current_request.uri):
-            return True
-
-        # Check Headers
-        headers_dict = dict(self.current_request.headers)
-        if self.__search_in_headers(headers_dict):
-            return True
-
-        # Check JSON Body
-        try:
-            body = self.current_request.body
-            if body:
-                json_data = tornado.escape.json_decode(body)
-                str_json = json.dumps(json_data)
-                if self.__search_in_json(str_json):
-                    return True
-        except json.JSONDecodeError:
-            print("Request does not contain valid JSON.")
-
-        return False
-
-    def __search_in_url(self, url: str) -> bool:
-        """
-        Search for SQL injections or other attacks in the URL.
-        """
-        return self.__search_sql(url)
-
-    def __search_in_headers(self, dict_headers: dict) -> bool:
-        """
-        Search for SQL injections or other attacks in headers.
-        """
-        for key, value in dict_headers.items():
-            if self.__search_sql(value):
-                return True
-        return False
-
-    def __search_in_json(self, str_json: str) -> bool:
-        """
-        Search for SQL injections or other attacks in JSON data.
-        """
-        return self.__search_sql(str_json)
-
-    def __search_sql(self, data: tornado.httputil.HTTPServerRequest) -> bool:
+    def __search_sql(self, data: tornado.httputil.HTTPServerRequest, pref) -> bool:
         """
         Check if the provided data contains SQL injections.
         """
-        result = SqliScanner.scan(data)
+        result = SqliScanner.scan(data, pref)
         return result
-    def __search_ddos(self,data: tornado.httputil.HTTPServerRequest) -> bool:
-        return DDOSScanner.scan(data)
+    def __search_ddos(self,data: tornado.httputil.HTTPServerRequest, pref) -> bool:
+        return DDOSScanner.scan(data, pref)
 
-    def __search_files(self,data: tornado.httputil.HTTPServerRequest) -> bool:
-        return Files_Scanner.scan(data)
+    def __search_files(self,data: tornado.httputil.HTTPServerRequest, pref) -> bool:
+        return Files_Scanner.scan(data, pref)
 
-    def __search_command_injection(self,data: tornado.httputil.HTTPServerRequest) -> bool:
-        return CommandInjectionScanner.scan(data)
+    def __search_command_injection(self,data: tornado.httputil.HTTPServerRequest, pref) -> bool:
+        return CommandInjectionScanner.scan(data, pref)
 
 

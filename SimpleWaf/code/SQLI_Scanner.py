@@ -5,9 +5,17 @@ from SQLI_Scanner_Utils import find_sqli, SqliStrictness
 
 class SqliScanner(IAttack_Scanner):
     @staticmethod
-    def scan(data: HTTPServerRequest) -> bool:
-        # get info from db
-        strictness = SqliStrictness.STRICT
+    def scan(data: HTTPServerRequest,pref_of_web) -> bool:
+
+        if isinstance(pref_of_web, int):
+            strictness = (SqliStrictness.LOW if pref_of_web == 0 else
+                           SqliStrictness.MID if pref_of_web == 1
+                           else SqliStrictness.STRICT)
+
+        else:
+            print("error on sql scanner. check type of pref")
+            strictness = SqliStrictness.STRICT
+
         blocked_characters = ''
         if find_sqli(data.uri, strictness, blocked_characters):
             return True

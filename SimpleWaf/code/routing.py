@@ -151,7 +151,7 @@ class WAFRequestHandler(RequestHandler):
 
         # Get website IP from DB
         host_name = urlparse(self.request.full_url()).hostname
-        website_ip = DB_Wrapper.get_ip_address_by_host_name(host_name.decode())
+        website_ip = DB_Wrapper.get_ip_address_by_host_name(host_name.decode() if isinstance(host_name,bytes) else host_name)
         if not website_ip or website_ip == DB_Wrapper.ERROR_IP_ADDRESS:
             print("Website does not exist")
             self.send_empty_msg_with_code(WEBSITE_NOT_EXIST_CODE)
@@ -160,9 +160,13 @@ class WAFRequestHandler(RequestHandler):
         # For debug
         # await self._see_params()
 
+        ### need optimazation - to not fetch from db each time... ###
+        pref_of_host_name_in_memory = Preferences.get_preferences_of_website(host_name)
+        if pref_of_host_name_in_memory == None:
+            pref_of_host_name_in_memory = Preferences.get_generic_prefs(host_name)
         # Check for attacks
         current = SearchAttacks(self.request)
-        name_of_attack = current.search_attacks()
+        name_of_attack = current.search_attacks(pref_of_host_name_in_memory)
         if name_of_attack == "":#if there is no attack
             pass
         else:#if there was an attack
@@ -174,8 +178,7 @@ class WAFRequestHandler(RequestHandler):
             self.send_empty_msg_with_code(ATTACK_FOUND_CODE)
             return
 
-        ### need optimazation - to not fetch from db each time... ###
-        pref_of_host_name_in_memory = Preferences.get_preferences_of_website(host_name)
+
         if pref_of_host_name_in_memory == None:
             DB_Wrapper.print_table_values("preferences")
             print("NEED TO ENTER PREF FOR THIS WEB: "+host_name)
@@ -349,10 +352,7 @@ class WAFRequestHandler(RequestHandler):
             for header, value in response.headers.get_all():
                 if header.lower() not in ("content-length", "transfer-encoding", "content-encoding"):
                     self.set_header(header, value)
-            self.before_request_to_client()
-            self.write(response.body)
-            self.finish()
-            self._finished = True
+            #self.before_request_to_client()
             if response.code != 304:
                 ### in 304 we do not have a body ###
                 self.write(response.body)
@@ -366,15 +366,7 @@ class WAFRequestHandler(RequestHandler):
         #self.set_header("X-Frame-Options", "SAMEORIGIN")
 
 
-    def _write_response(self, response: HTTPResponse):
-        if not self._finished:
-            for header, value in response.headers.get_all():
-                if header.lower() not in ("content-length", "transfer-encoding", "content-encoding"):
-                    self.set_header(header, value)
-            self.before_request_to_client()  # here apply rules
-            self.write(response.body)
-            self.finish()
-            self._finished = True
+
 
 
 def make_app():

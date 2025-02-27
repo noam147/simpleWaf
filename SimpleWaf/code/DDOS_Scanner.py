@@ -25,7 +25,7 @@ class DDOSScanner(IAttack_Scanner):
             DDOSScanner._clear_scan()
 
     @staticmethod
-    def scan(data: HTTPServerRequest) -> bool:
+    def scan(data: HTTPServerRequest,pref_of_web) -> bool:
         try:
             ip_address = data.remote_ip
             #ip_address = data.environ['REMOTE_ADDR']

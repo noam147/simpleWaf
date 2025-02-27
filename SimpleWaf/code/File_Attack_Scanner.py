@@ -111,10 +111,16 @@ class Files_Scanner(IAttack_Scanner):
                     return True
         return False
     @staticmethod
-    def scan(data: HTTPServerRequest) -> bool:
+    def scan(data: HTTPServerRequest, pref_of_web) -> bool:
         """levels for -
         block anyone who tries php files - 1
         block anyone who tries to upload files that are not in the waf format - 2"""
+        if isinstance(pref_of_web, int):
+            strictness = pref_of_web
+        else:
+            print("error on file upload. check type of pref")
+            #strictness = STRICT
+
         if Files_Scanner.search_file_traversal(data):
             return True
         if Files_Scanner.search_file_formats(data):
