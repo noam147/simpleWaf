@@ -6,6 +6,7 @@ from tornado.escape import json_decode
 import DB_Wrapper
 from urllib.parse import urlparse, urlencode
 
+from XSS_Prevent import XSS_Preventer
 import csrf_token_helper
 import slow_loris_detect
 from SearchAttackHelper import SearchAttacks
@@ -173,6 +174,8 @@ class WAFRequestHandler(RequestHandler):
             #abort request
             self.send_empty_msg_with_code(ATTACK_FOUND_CODE)
             return
+        ### replace the xss todo check with prefrences before###
+        self.request = XSS_Preventer.edit_request(self.request)
 
         ### need optimazation - to not fetch from db each time... ###
         pref_of_host_name_in_memory = Preferences.get_preferences_of_website(host_name)
