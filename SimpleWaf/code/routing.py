@@ -244,7 +244,7 @@ class WAFRequestHandler(RequestHandler):
         if not slow_loris_detect.check_chunk(len(chunk)):
             print(f"Blocked a tiny message from IP {ip_address}")
             self.send_empty_msg_with_code(ATTACK_FOUND_CODE)
-            self.alert_to_logger(host_name.decode(),ip_address,"Slow_Loris")
+            self.alert_to_logger(host_name.decode() if isinstance(host_name,bytes) else host_name,ip_address,"Slow_Loris")
             if self.request.connection.stream:
                 self.request.connection.stream.close()
             return
