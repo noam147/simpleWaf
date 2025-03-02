@@ -286,7 +286,7 @@ class WAFRequestHandler(RequestHandler):
         ### this is old header that sometimes does not work ###
         response.headers.add("X-Frame-Options", "SAMEORIGIN")
         ### this is the new and imporved header that really work ###
-        response.headers.add("Content-Security-Policy", "frame-ancestors 'none';")
+        response.headers.add("Content-Security-Policy", "frame-ancestors 'self';")
 
     def _write_response(self, response: HTTPResponse):
 
