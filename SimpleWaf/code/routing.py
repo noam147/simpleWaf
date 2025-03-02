@@ -266,26 +266,6 @@ class WAFRequestHandler(RequestHandler):
         # Append the chunk to the request body
         self.request.body += chunk
 
-    def on_finish(self):
-        ip_address = self.request.remote_ip
-
-        # Clear connection timeout
-        if ip_address in self.connection_timeout_handles:
-            IOLoop.current().remove_timeout(self.connection_timeout_handles[ip_address])
-            del self.connection_timeout_handles[ip_address]
-
-        # Clear chunk timeout
-        if ip_address in self.chunk_timeout_handles and self.chunk_timeout_handles[ip_address]:
-            IOLoop.current().remove_timeout(self.chunk_timeout_handles[ip_address])
-            del self.chunk_timeout_handles[ip_address]
-
-        # Remove the connection from connections
-        if ip_address in self.connections:
-            if self in self.connections[ip_address]:
-                self.connections[ip_address].remove(self)
-            if not self.connections[ip_address]:
-                del self.connections[ip_address]
-
     async def before_request_to_client(self):
         """mimic flask way of adding things before sending request"""
         #defend clickjacking:
@@ -295,29 +275,6 @@ class WAFRequestHandler(RequestHandler):
         #right way:
         self.set_header("X-Frame-Options", "SAMEORIGIN")
 
-    def data_received(self, chunk: bytes):
-        ip_address = self.request.remote_ip
-
-        # Check if the chunk size is too small
-        if not slow_loris_detect.check_chunk(len(chunk)):
-            print(f"Blocked a tiny message from IP {ip_address}")
-            self.send_empty_msg_with_code(ATTACK_FOUND_CODE)
-            if self.request.connection.stream:
-                self.request.connection.stream.close()
-            return
-
-        # Cancel any existing timeout handles for this IP if a valid chunk was received
-        if ip_address in self.chunk_timeout_handles and self.chunk_timeout_handles[ip_address]:
-            IOLoop.current().remove_timeout(self.chunk_timeout_handles[ip_address])
-
-        # Set a new timeout for the next chunk
-        self.chunk_timeout_handles[ip_address] = IOLoop.current().add_timeout(
-            time.time() + slow_loris_detect.MAX_TIME_BETWEEN_CHUNKS,
-            lambda: self.send_empty_msg_with_code(ATTACK_FOUND_CODE)
-        )
-
-        # Append the chunk to the request body
-        self.request.body += chunk
 
     def on_finish(self):
         ip_address = self.request.remote_ip
