@@ -42,6 +42,7 @@ def get_is_ip_attacker(ip_add:str) -> bool:
         current_date = datetime.now()
         # if the attacker_free_date already past
         if current_date > attacker_free_date:
+            #todo maybe alert the server? or the server will do checking of his own?
             del data_dict[ATTACKERS][ip_add]
             return False
         return True
@@ -75,10 +76,20 @@ def example_of_getting_data():
 
     ### the attackers dict will contain the key ip and value free date
     data_dict[ATTACKERS] = {}
-    # those will be kept as
-    #data_dict[ATTACKERS] = DB_Wrapper.get_table_values(ATTACKERS)
-    #data_dict[ATTACKERS_SCORE] = DB_Wrapper.get_table_values(ATTACKERS_SCORE)
-    print(data_dict)
+    # those will be kept as normal dict
+    attackers_data = DB_Wrapper.get_table_values(ATTACKERS)
+    for data_cell in attackers_data:
+        attacker_ip = data_cell[0]
+        attacker_freedate = data_cell[1]
+        str_attacker_free_date = attacker_freedate.strftime("%Y-%m-%d")
+        data_dict[ATTACKERS][attacker_ip] = str_attacker_free_date
+
+    ### attackers score is not relevant to the WAF - that is just the server handling ###
+    # todo think about when the waf will get updated from the server
+    #       data_dict[ATTACKERS_SCORE] = DB_Wrapper.get_table_values(ATTACKERS_SCORE)
+    print(data_dict[ATTACKERS])
 
 if __name__ == '__main__':
     example_of_getting_data()
+    ### activate this on attacker ip with date that did not pass ###
+    print(get_is_ip_attacker('123.123.123.123'))
