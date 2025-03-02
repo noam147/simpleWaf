@@ -1,29 +1,23 @@
-import json
 from tornado.ioloop import IOLoop
 from tornado.web import Application, RequestHandler, HTTPError, stream_request_body
 from tornado.httpclient import AsyncHTTPClient, HTTPRequest, HTTPResponse, httputil
 from tornado.escape import json_decode
 import DB_Wrapper
 from urllib.parse import urlparse, urlencode
-
 from XSS_Prevent import XSS_Preventer
-import csrf_token_helper
 import slow_loris_detect
 from SearchAttackHelper import SearchAttacks
 from vars_for_global_use import *
-from typing import Any, Optional, Awaitable
 from collections import defaultdict
 import time
 from datetime import datetime
 import logger
 from Preferences import Preferences
 import urllib.parse
-import inspect
 import socket
 from io import BytesIO
 
 PORT_APP = 5000
-EXAMPLE_WEBSITE_PORT = 5001
 
 
 @stream_request_body
@@ -214,11 +208,13 @@ class WAFRequestHandler(RequestHandler):
 
             # csrf protection
             response.headers.add("X-CSRFToken", self.xsrf_token)
-            if isinstance(response.body, bytes):
+            new_response_body = response.body
+            ### the xsrf does not in need ###
+            """if isinstance(response.body, bytes):
                 ### for imgs or files, we do not need to even check for forms ###
                 new_response_body = response.body  # Keep binary data unchanged
             else:
-                new_response_body = csrf_token_helper.inject_token_to_html(response.body.decode(), self.xsrf_form_html())
+                new_response_body = csrf_token_helper.inject_token_to_html(response.body.decode(), self.xsrf_form_html())"""
 
             modified_response = HTTPResponse(
                 request=HTTPRequest(response.effective_url),
@@ -266,16 +262,6 @@ class WAFRequestHandler(RequestHandler):
         # Append the chunk to the request body
         self.request.body += chunk
 
-    async def before_request_to_client(self):
-        """mimic flask way of adding things before sending request"""
-        #defend clickjacking:
-        #wrong way:
-        #self.request.headers["X-Frame-Options"] = "SAME-ORIGIN"
-        #this is the msg from the client to the server, we want the msg from server to client thus:
-        #right way:
-        self.set_header("X-Frame-Options", "SAMEORIGIN")
-
-
     def on_finish(self):
         ip_address = self.request.remote_ip
 
@@ -298,7 +284,7 @@ class WAFRequestHandler(RequestHandler):
     def add_clickjacking_defence(self,response: HTTPResponse):
         ##### CLICKJACKING #####
         ### this is old header that sometimes does not work ###
-        response.headers.add("X-Frame-Options", "DENY")
+        response.headers.add("X-Frame-Options", "SAMEORIGIN")
         ### this is the new and imporved header that really work ###
         response.headers.add("Content-Security-Policy", "frame-ancestors 'none';")
 
@@ -309,18 +295,12 @@ class WAFRequestHandler(RequestHandler):
             for header, value in response.headers.get_all():
                 if header.lower() not in ("content-length", "transfer-encoding", "content-encoding"):
                     self.set_header(header, value)
-            #self.before_request_to_client()
             if response.code != 304:
                 ### in 304 we do not have a body ###
                 self.write(response.body)
             self.finish()
             self._finished = True
-        #defend clickjacking:
-        #wrong way:
-        #self.request.headers["X-Frame-Options"] = "SAME-ORIGIN"
-        #this is the msg from the client to the server, we want the msg from server to client thus:
-        #right way:
-        #self.set_header("X-Frame-Options", "SAMEORIGIN")
+
 
 
 
