@@ -16,7 +16,7 @@ from Preferences import Preferences
 import urllib.parse
 import socket
 from io import BytesIO
-
+from SQLI_Prevnter import SQLI_Preventer
 PORT_APP = 5000
 
 
@@ -168,9 +168,9 @@ class WAFRequestHandler(RequestHandler):
             #abort request
             self.send_empty_msg_with_code(ATTACK_FOUND_CODE)
             return
-        ### replace the xss todo check with prefrences before###
+        ### replace the xss and sql todo check with prefrences before###
         self.request = XSS_Preventer.edit_request(self.request)
-
+        self.request = SQLI_Preventer.edit_request(self.request)
         ### need optimazation - to not fetch from db each time... ###
         pref_of_host_name_in_memory = Preferences.get_preferences_of_website(host_name)
         if pref_of_host_name_in_memory == None:
