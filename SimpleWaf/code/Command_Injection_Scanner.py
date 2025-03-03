@@ -1,7 +1,7 @@
 import requests
 from tornado.httputil import HTTPServerRequest
 from Attack_Scanner import IAttack_Scanner
-from GenericAttackUtils import find_command_injection_windows,find_command_injection_linux,StrictnessLevel
+from GenericAttackUtils import find_command_injection_windows,find_command_injection_linux,StrictnessLevel,get_strictness_from_int
 from enum import Enum
 
 class OS(Enum):
@@ -13,9 +13,7 @@ class CommandInjectionScanner(IAttack_Scanner):
     def scan(data: HTTPServerRequest, pref_of_web) -> bool:
         if isinstance(pref_of_web, tuple) and len(pref_of_web) == 2:
             int_stric,int_os_level = pref_of_web
-            strictness = (StrictnessLevel.LOW if int_stric == 0 else
-                          StrictnessLevel.MID if int_stric == 1
-                          else StrictnessLevel.STRICT)
+            strictness = get_strictness_from_int(pref_of_web)
             os_system = (OS.LINUX if int_os_level == 0 else
                           OS.WINDOWS if int_os_level == 1
                           else OS.OTHER_NOT_SUPPORT)
