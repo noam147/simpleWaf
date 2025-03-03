@@ -121,8 +121,11 @@ class Files_Scanner(IAttack_Scanner):
             print("error on file upload. check type of pref")
             strictness = StrictnessLevel.STRICT
         if strictness != StrictnessLevel.LOW:
+            
             if Files_Scanner.search_file_traversal(data):
                 return True
+        if strictness == StrictnessLevel.STRICT:
+
             if Files_Scanner.search_file_formats(data):
                 return True
         return False
