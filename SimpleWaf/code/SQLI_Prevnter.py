@@ -17,5 +17,5 @@ class SQLI_Preventer(Attack_Scanner):
             new_headers[key] = SQLI_Preventer.replace_sql(val)
         request.headers = new_headers
         if request.body and isinstance(request.body, str):#if data isn't str, we do not need to check it
-            request.data = SQLI_Preventer.replace_sql(request.body)
+            request.body = SQLI_Preventer.replace_sql(request.body)
         return request

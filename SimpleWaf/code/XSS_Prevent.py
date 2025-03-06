@@ -16,6 +16,8 @@ class XSS_Preventer(Attack_Scanner):
         for key,val in request.headers.items():
             new_headers[key] = XSS_Preventer.replace_xss(val)
         request.headers = new_headers
-        if request.body and isinstance(request.body, str):#if data isn't str, we do not need to check it
-            request.data = XSS_Preventer.replace_xss(request.body)
+        #if request.body and isinstance(request.body, str):#if data isn't str, we do not need to check it
+        #    request.data = XSS_Preventer.replace_xss(request.body)
+        if request.body:
+            request.body = XSS_Preventer.replace_xss(request.body.decode() if isinstance(request.body,bytes) else request.body)
         return request

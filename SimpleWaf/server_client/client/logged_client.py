@@ -1,0 +1,1 @@
+available_commands = ['See Log File','Log Out','See & Update Preferences']
