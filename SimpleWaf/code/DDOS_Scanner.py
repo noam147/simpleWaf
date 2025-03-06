@@ -18,7 +18,7 @@ TIME_OF_SCAN_ON_MINUTES = 5
 NUM_ALLOWED_REQUESTS_PER_MIN = 100
 NUM_REQUESTS_UNTIL_WEB_FULL = TIME_OF_SCAN_ON_MINUTES * NUM_ALLOWED_REQUESTS_PER_MIN
 class DDOSScanner(IAttack_Scanner):
-    _MAX_NUMBER_OF_REQUESTS_PER_SECOND = 15
+    _MAX_NUMBER_OF_REQUESTS_PER_SECOND = 100
     _ip_addresses_and_amount_of_requests:dict = {}
     _webs_and_msgs:dict = {} #value- hostname:str; key- number of msgs to this hostname
     ### there is GIL in cpython and thus we do not need to be afraid to insert to dict even though we use detach threads
@@ -38,6 +38,11 @@ class DDOSScanner(IAttack_Scanner):
             DDOSScanner._clear_scan()
 
     @staticmethod
+    def is_zipbomb_msg(data: HTTPServerRequest) -> bool:
+        """func check if content is more than 10mb"""
+        return len(data.body) > 1000 * 1024 * 1024 * 3 # 3gb in bytes
+
+    @staticmethod
     def is_big_msg(data: HTTPServerRequest) -> bool:
         """func check if content is more than 10mb"""
         return len(data.body) > 10 * 1024 * 1024  # 10mb in bytes
@@ -47,10 +52,11 @@ class DDOSScanner(IAttack_Scanner):
         try:
             ip_address = data.remote_ip
             host_name = data.host_name
-            #ip_address = data.environ['REMOTE_ADDR']
         except Exception:
-            print("can")
             return True#if we can't accsess the ip - this is an attacker
+        if DDOSScanner.is_zipbomb_msg(data.body):
+            return True#if the msg is above the really big size - this is an attack
+
         ### there is GIL in cpython and thus we do not need to be afraid to insert to dict even though we use detach threads
 
         if host_name not in DDOSScanner._webs_and_msgs:
@@ -58,6 +64,11 @@ class DDOSScanner(IAttack_Scanner):
             DDOSScanner._webs_and_msgs[host_name] = 1
         else:
             DDOSScanner._webs_and_msgs[host_name] += 1
+        if DDOSScanner._webs_and_msgs[host_name] > NUM_REQUESTS_UNTIL_WEB_FULL:
+            ### if web is full check for size of msg###
+            if DDOSScanner.is_big_msg(data.body):
+                return True
+
         ### insert ip to dict ###
         if ip_address not in DDOSScanner._ip_addresses_and_amount_of_requests:
             #if ip not in the dict
@@ -69,26 +80,3 @@ class DDOSScanner(IAttack_Scanner):
             print("attackerrrrr, ip= "+ip_address)
             return True
         return False
-
-
-def check_ddos():
-    response = requests.get("https://kidum-me.com/")
-    fake_ip = '11.1.1.1'
-    headers = {'X-Forwarded-For': fake_ip}
-    exmple_req = requests.Request(method="get",headers=headers)
-    while True:
-        DDOSScanner.scan(exmple_req)
-def check2():
-    from unittest.mock import Mock
-    import requests
-
-    # Create a mock for your 'data' object to simulate a WSGI-like request environment
-    mock_data = Mock()
-    mock_data.environ = {'REMOTE_ADDR': '11.1.1.1'}  # Set the IP address here
-
-    # Your request object would look like this (request is from the requests library, not WSGI)
-    exmple_req = requests.Request(method="GET", headers={"ip_src": "11.1.1.1"})
-    exmple_req.environ = mock_data.environ
-    while True:
-        DDOSScanner.scan(exmple_req)
-
