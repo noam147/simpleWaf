@@ -1,21 +1,13 @@
 import socket
 import json
+from General_Handler_Class import GeneralHandler
+from logged_user_menu import Logged_user
 from things_for_all_handlers import receive_data,send_data
 import DB_Wrapper
-available_commands = ['Help','Add Website','Add User','Print Menu','Log In','Exit']
-
-dict_available_commands = {index: command for index, command in enumerate(available_commands,1)}
-
 
 ADD_USER_MSG_CODE = chr(1)
 ADD_WEBSITE_MSG_CODE = chr(2)
 LOGIN_CODE = chr(3)
-#generic func for all handlers:
-def get_menu():
-    menu = "Available Commands:\n"
-    for i in range(len(available_commands)):
-        menu += f"[{i+1}]. {available_commands[i]}\n"
-    return menu[:-1]#without the last \n
 
 def add_user(json_msg) -> tuple[bool,str]:
     ### bool is result if went good, str is an explnation of what happend wrong###
@@ -52,31 +44,28 @@ def login(json_msg) -> tuple[bool,str]:
     return False,"login failed"
 
 #### way of operation - user will send a msmg code and after that details in json like trivia.......
-
-def handel_user(client_socket:socket.socket,client_address):
-    DB_Wrapper.print_table_values('website_login')
-    DB_Wrapper.print_table_values('websites_ip')
-    while True:
-        result = False
+class Unlogged_user(GeneralHandler):
+    def handle_user(self,client_socket: socket.socket):
         msg = receive_data(client_socket)
         code_msg = msg[0]
         try:
             json_msg = json.loads(msg[1:])
         except Exception as e:
-            send_data(client_socket,"Invalid request.")
-            continue
+            send_data(client_socket, "Invalid request.")
+            return self
         if code_msg == ADD_USER_MSG_CODE:
             result = add_user(json_msg)
         elif code_msg == ADD_WEBSITE_MSG_CODE:
             result = add_website(json_msg)
         elif code_msg == LOGIN_CODE:
             result = login(json_msg)
-            if result[0]:#if login good
-                pass#todo pass user to second phase
+            if result[0]:  # if login good
+                return Logged_user() #pass user to second phase todo pass with username
             ###if result is true, we pass user into the second handler like trivia###
         else:
-            data = {'isSuccesses':False,'explanation': '---Invalid Code Msg---'}
+            data = {'isSuccesses': False, 'explanation': '---Invalid Code Msg---'}
             send_data(client_socket, json.dumps(data))
-            continue
-        data = {'isSuccesses':result[0],'explanation':result[1]}
+            return self
+        data = {'isSuccesses': result[0], 'explanation': result[1]}
         send_data(client_socket, json.dumps(data))
+        return self

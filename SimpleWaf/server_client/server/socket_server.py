@@ -1,6 +1,6 @@
 import socket
 import threading
-from unlogged_user_menu import handel_user
+from Manage_handlers import handle_user
 IP_ADD = '0.0.0.0'
 SERVER_PORT = 47777
 server_socket:socket.socket = None
@@ -26,7 +26,7 @@ def accept_client():
         print(client_address)
         #todo pass them in thread to treat them
         #client_socket.send(guiStaff.start_of_screen)
-        t = threading.Thread(target=handel_user,args = (client_socket,client_address))
+        t = threading.Thread(target=handle_user,args =(client_socket,))
         t.daemon = True
         t.start()
         #handel_user(client_socket,client_address)
