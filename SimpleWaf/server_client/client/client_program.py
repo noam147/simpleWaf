@@ -1,8 +1,9 @@
 import guiStaff
 import json
 import socket_client
-from unlogged_client import unlogged_user
-
+LOGGED_SCREEN = "logged_user_screen"
+UNLOGGED_SCREEN = "unlogged_user_screen"
+EXIT = "exit"
 def check_status_after_exec(func):
     """this func is a decorator for reducing lines of duplicate code"""
     def wrapper(*args, **kwargs):
@@ -25,11 +26,24 @@ def get_menu(available_commands:list):
 
 
 def at_start():
+    from unlogged_client import unlogged_user
+    from logged_client import logged_user
     if not socket_client.at_start():
         print("Server is not Available Right Now.")
         return -1
     print(guiStaff.start_of_screen)
-    unlogged_user()
+    result = unlogged_user()
+    while True:
+        if result == EXIT:
+            return 1
+        elif result == LOGGED_SCREEN:
+            result = logged_user()#assign new result code
+        elif result == UNLOGGED_SCREEN:
+            result = unlogged_user()
+        else:
+            return -1
+
+
 
 
 

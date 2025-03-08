@@ -1,4 +1,4 @@
-from client_program import check_status_after_exec, get_menu
+from client_program import check_status_after_exec, get_menu, LOGGED_SCREEN, EXIT
 import json
 import socket_client
 
@@ -71,7 +71,8 @@ def unlogged_user():
             result = log_in()
             if result:
                 print("Logged In. Passing to New menu.")#todo show the user commands of logged user
+                return LOGGED_SCREEN
         elif actual_command == 'Exit':
-            break
+            return EXIT
         else:
             print('Try Again.')

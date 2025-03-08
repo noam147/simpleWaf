@@ -1,4 +1,4 @@
-from client_program import check_status_after_exec, get_menu
+from client_program import check_status_after_exec, get_menu, UNLOGGED_SCREEN, EXIT
 import json
 import socket_client
 
@@ -11,7 +11,7 @@ CHANGE_DETAILS_OF_USER_CODE = chr(7)
 SEE_LOG_FILE_CODE = chr(8)
 LOGOUT_CODE = chr(9)
 
-def logged_user(username:str):
+def logged_user():
     menu = get_menu(available_commands)
     while True:
         print(menu)
@@ -25,8 +25,8 @@ def logged_user(username:str):
         elif actual_command == 'Log Out':
             full_msg = LOGOUT_CODE + ""
             socket_client.send_data(full_msg)
-            return
+            return UNLOGGED_SCREEN
         elif actual_command == 'Exit':
-            break
+            return EXIT
         else:
             print('Try Again.')

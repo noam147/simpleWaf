@@ -60,7 +60,9 @@ class Unlogged_user(GeneralHandler):
         elif code_msg == LOGIN_CODE:
             result = login(json_msg)
             if result[0]:  # if login good
-                return Logged_user() #pass user to second phase todo pass with username
+                data = {'isSuccesses': True, 'explanation': ''}
+                send_data(client_socket, json.dumps(data))
+                return Logged_user("check") #pass user to second phase todo pass with username
             ###if result is true, we pass user into the second handler like trivia###
         else:
             data = {'isSuccesses': False, 'explanation': '---Invalid Code Msg---'}
