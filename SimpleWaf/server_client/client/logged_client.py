@@ -61,10 +61,10 @@ def logged_user():
         elif actual_command == 'Set Preferences':
             set_preferences()
         elif actual_command == 'Log Out':
-            full_msg = LOGOUT_CODE + ""
+            full_msg = LOGOUT_CODE + "{}"
             socket_client.send_data(full_msg)
             return UNLOGGED_SCREEN
         elif actual_command == 'Exit':
             return EXIT
         else:
-            print('Try Again.')
+            print('Command is not yet built :( ')

@@ -68,8 +68,8 @@ class Logged_user(GeneralHandler):
             result = see_log_file(json_msg)
         elif code_msg == LOGOUT_CODE:
             #we will not send data back to the user, there is no need to.
-            #data = {'isSuccesses': True, 'explanation': ''}
-            #send_data(client_socket, json.dumps(data))
+            data = {'isSuccesses': True, 'explanation': ''}
+            send_data(client_socket, json.dumps(data))
             return None#none means to get back into unlogged
 
         else:
