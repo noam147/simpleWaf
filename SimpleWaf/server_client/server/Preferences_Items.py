@@ -24,3 +24,17 @@ class Preferences_Items:
             f"Port: {self.port}\n"
             f"Protocol: {'HTTPS' if self.isHttps else 'HTTP'}"
         )
+
+    def to_dict(self) -> dict:
+        return {
+            "host_name": self.host_name,
+            "sql_level": self.sql_level,
+            "xss_defence": self.xss_defence,
+            "hpp_defence": self.hpp_defence,
+            "file_attack_level": self.file_attack_level,
+            "to_send_email": self.to_send_email,
+            "os_level": self.os_level,
+            "port": self.port,
+            "isHttps": self.isHttps
+        }
+

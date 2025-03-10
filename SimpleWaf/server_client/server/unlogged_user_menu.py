@@ -40,7 +40,7 @@ def login(json_msg) -> tuple[bool,str]:
     except Exception:
         return False,"msg is corrupted, check json values"
     if DB_Wrapper.verify_login_into_website_login(username, password):
-        return True,""
+        return True,username
     return False,"login failed"
 
 #### way of operation - user will send a msmg code and after that details in json like trivia.......
@@ -62,7 +62,8 @@ class Unlogged_user(GeneralHandler):
             if result[0]:  # if login good
                 data = {'isSuccesses': True, 'explanation': ''}
                 send_data(client_socket, json.dumps(data))
-                return Logged_user("check") #pass user to second phase todo pass with username
+                username = result[1]
+                return Logged_user(username) #pass user to second phase todo pass with username
             ###if result is true, we pass user into the second handler like trivia###
         else:
             data = {'isSuccesses': False, 'explanation': '---Invalid Code Msg---'}

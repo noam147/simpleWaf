@@ -342,11 +342,20 @@ def check_if_username_exist_in_website_login(username:str) ->bool:
             """
     args = (username,)
     result = exec_command(command,args)
-    print("resualt is:")
-    print(result)
     if len(result) == 0:
         return False
     return True
+def get_host_name_for_user(username:str) -> str:
+
+    print_table_values("website_login")
+    command = """
+            SELECT host_name FROM website_login where user_name = %s
+            """
+    args = (username,)
+    result = exec_command(command,args)
+    if result == ERROR_WITH_DB_EXEC_COMMAND_CODE or len(result) == 0:
+        return ""
+    return result[0][0]
 ###  preferences table ###
 
 from Preferences_Items import  Preferences_Items
