@@ -24,12 +24,9 @@ def accept_client():
         client_socket, client_address = server_socket.accept()
         print(client_socket)
         print(client_address)
-        #todo pass them in thread to treat them
-        #client_socket.send(guiStaff.start_of_screen)
         t = threading.Thread(target=handle_user,args =(client_socket,))
         t.daemon = True
         t.start()
-        #handel_user(client_socket,client_address)
 def at_end():
     global server_socket
     server_socket.close()

@@ -1,11 +1,10 @@
 import socket
 from General_Handler_Class import GeneralHandler
-#from unlogged_user_menu import Unlogged_user
 import json
-from things_for_all_handlers import receive_data,send_data
+from things_for_all_handlers import receive_data, send_data
 import DB_Wrapper
 from Preferences_Items import Preferences_Items
-"""how to know to which web are we using? maybe pass the user name.."""
+
 SEE_PREFERENCES_CODE = chr(5)
 SET_PREFERENCES_CODE = chr(6)
 CHANGE_DETAILS_OF_USER_CODE = chr(7)
@@ -14,13 +13,10 @@ LOGOUT_CODE = chr(9)
 available_commands = ['See Preferences','Set Preferences','Change Details Of User','Print Menu','Log Out','Exit']
 
 def see_preferences(host_name:str) -> tuple[bool,dict]:
-    print("see_preferences")
     result: Preferences_Items = DB_Wrapper.get_preferences_by_host_name(host_name)
     result_in_dict = result.to_dict()
     return True, result_in_dict
-def set_preferences(json_msg, host_name):
-    print(host_name)
-    print(json_msg)
+def set_preferences(json_msg, host_name) -> tuple[bool,str]:
     pref_from_json = []
     try:
         pref_from_json.append(host_name)
@@ -37,6 +33,8 @@ def set_preferences(json_msg, host_name):
     DB_Wrapper.special_insert_or_update_preferences_table_preferences_table(Preferences_Items([pref_from_json]))
     return True, ""
 def change_details_of_user(json_msg):
+    #can change the password, the email add, and maybe its username?
+    #should we allow also the host name to be changed?
     pass
 def see_log_file(json_msg):
     pass
@@ -49,8 +47,6 @@ class Logged_user(GeneralHandler):
             print("hostname is None or empty. should not happend. abort.")
             raise Exception
     def handle_user(self,client_socket: socket.socket):
-        print("username is: ")
-        print(self.username)
         msg = receive_data(client_socket)
         code_msg = msg[0]
         try:
@@ -61,7 +57,7 @@ class Logged_user(GeneralHandler):
         if code_msg == SEE_PREFERENCES_CODE:
             result = see_preferences(self.hostname)
         elif code_msg == SET_PREFERENCES_CODE:
-            result = set_preferences(json_msg,self.hostname)
+            result = set_preferences(json_msg, self.hostname)
         elif code_msg == CHANGE_DETAILS_OF_USER_CODE:
             result = change_details_of_user(json_msg)
         elif code_msg == SEE_LOG_FILE_CODE:
