@@ -1,5 +1,8 @@
 class Preferences_Items:
     def __init__(self,preferences:list):
+        #example of input is:
+        #[("mySite.com",2,False,True,2,True,1,80,False)]
+
         preferences:tuple = preferences[0]### get the actuall data tuple
         self.host_name:str = preferences[0]
         self.sql_level:int = preferences[1]

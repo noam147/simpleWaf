@@ -43,12 +43,11 @@ def see_log_file(json_msg):
 class Logged_user(GeneralHandler):
     def __init__(self,username):
         self.username:str = username
+        #because the username is unique we can be sure it matches only one corresponding hostname
         self.hostname:str = DB_Wrapper.get_host_name_for_user(username)
         if self.hostname == None or self.hostname == "":
             print("hostname is None or empty. should not happend. abort.")
             raise Exception
-        #get the host name by username or do that for each host_name there will be separate users to allow multiple user names for difrrent hostnames
-        #self.host_name = host_name
     def handle_user(self,client_socket: socket.socket):
         print("username is: ")
         print(self.username)
@@ -68,11 +67,13 @@ class Logged_user(GeneralHandler):
         elif code_msg == SEE_LOG_FILE_CODE:
             result = see_log_file(json_msg)
         elif code_msg == LOGOUT_CODE:
-            data = {'isSuccesses': True, 'explanation': ''}
-            send_data(client_socket, json.dumps(data))
-            return None
-            ###if result is true, we pass user into the second handler like trivia###
+            #we will not send data back to the user, there is no need to.
+            #data = {'isSuccesses': True, 'explanation': ''}
+            #send_data(client_socket, json.dumps(data))
+            return None#none means to get back into unlogged
+
         else:
+            #if msg of user did not match known msgcode
             data = {'isSuccesses': False, 'explanation': '---Invalid Code Msg---'}
             send_data(client_socket, json.dumps(data))
             return self

@@ -18,7 +18,8 @@ def check_status_after_exec(func):
     return wrapper
 
 
-def get_menu(available_commands:list):
+def get_menu(available_commands:list) -> str:
+    """func for having nice menu"""
     menu = "Available Commands:\n"
     for i in range(len(available_commands)):
         menu += f"[{i+1}]. {available_commands[i]}\n"

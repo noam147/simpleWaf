@@ -39,6 +39,6 @@ def at_end():
 
 if __name__ == '__main__':
     if not at_start():
-        print("ho no")
+        print("for some reason server can not be established.")
     accept_client()
-    at_end()
+    at_end()#not really going to get exec..

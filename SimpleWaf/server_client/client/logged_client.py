@@ -2,7 +2,7 @@ from client_program import check_status_after_exec, get_menu, UNLOGGED_SCREEN, E
 import json
 import socket_client
 
-available_commands = ['See Preferences','Set Preferences','Change Details Of User','Print Menu','Log Out','Exit']
+available_commands = ['See Preferences','Set Preferences','Change Details Of User','Log Out','Delete User', 'Delete Web From WAF Defence System', 'Exit']
 
 dict_available_commands = {index: command for index, command in enumerate(available_commands,1)}
 SEE_PREFERENCES_CODE = chr(5)
@@ -10,14 +10,20 @@ SET_PREFERENCES_CODE = chr(6)
 CHANGE_DETAILS_OF_USER_CODE = chr(7)
 SEE_LOG_FILE_CODE = chr(8)
 LOGOUT_CODE = chr(9)
-
+#todo add msg codes of delete user and web and their funs
 def see_preferences():
+    """because the server save at its side the username we won't need send anything but the msgcode"""
     full_msg = SEE_PREFERENCES_CODE + "{}"
     socket_client.send_data(full_msg)
     answer = socket_client.receive_data()
-    print(answer)
+    #todo prase the answer for better looking
     msg_from_server = json.loads(answer)
+    print(answer)
+
+
+@check_status_after_exec
 def set_preferences():
+    """func will ask user to fill all inputs, the validation will happen at server side"""
     sql_level = input("enter sqlLevel[int from 0-2]: ")
     xss_defence = input('XSS defence: [Y/y] for Yes other for no')
     xss_defence = True if xss_defence.lower() == 'y' else False

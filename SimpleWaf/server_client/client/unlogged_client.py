@@ -2,7 +2,7 @@ from client_program import check_status_after_exec, get_menu, LOGGED_SCREEN, EXI
 import json
 import socket_client
 
-available_commands = ['Add Website','Add User','Print Menu','Log In','Exit']
+available_commands = ['Add Website','Add User','Log In','Exit']
 
 dict_available_commands = {index: command for index, command in enumerate(available_commands,1)}
 ADD_USER_MSG_CODE = chr(1)
@@ -70,7 +70,7 @@ def unlogged_user():
         elif actual_command == 'Log In':
             result = log_in()
             if result:
-                print("Logged In. Passing to New menu.")#todo show the user commands of logged user
+                print("Logged In. Passing to New menu.")
                 return LOGGED_SCREEN
         elif actual_command == 'Exit':
             return EXIT

@@ -49,6 +49,7 @@ class Unlogged_user(GeneralHandler):
         msg = receive_data(client_socket)
         code_msg = msg[0]
         try:
+            #just like trivia
             json_msg = json.loads(msg[1:])
         except Exception as e:
             send_data(client_socket, "Invalid request.")
@@ -63,7 +64,7 @@ class Unlogged_user(GeneralHandler):
                 data = {'isSuccesses': True, 'explanation': ''}
                 send_data(client_socket, json.dumps(data))
                 username = result[1]
-                return Logged_user(username) #pass user to second phase todo pass with username
+                return Logged_user(username) #pass user to second phase
             ###if result is true, we pass user into the second handler like trivia###
         else:
             data = {'isSuccesses': False, 'explanation': '---Invalid Code Msg---'}
