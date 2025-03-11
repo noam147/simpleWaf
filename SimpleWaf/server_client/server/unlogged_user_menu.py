@@ -27,10 +27,11 @@ def add_user(json_msg) -> tuple[bool,str]:
     return False,"error with db"
 def add_website(json_msg) -> tuple[bool,str]:
     try:
-        host_name = json_msg["host_name"]
+        host_name:str = json_msg["host_name"]
         ip_add = json_msg["ip_add"]
     except Exception:
         return False, "msg is corrupted, check json values"
+    host_name = host_name.lower()#to prevent mismtach in capitals.
     DB_Wrapper.special_insert_or_update_website_ip(host_name, ip_add)
     return True,""
 def login(json_msg) -> tuple[bool,str]:

@@ -3,6 +3,7 @@ from tornado.httputil import HTTPServerRequest
 from tornado.httpclient import HTTPResponse,HTTPRequest
 from io import BytesIO
 import socket
+from logger import _OuterLogger
 SERVER_IP = '127.0.0.1'
 SERVER_PORT = 47777
 def check_if_msg_from_server(data:HTTPServerRequest) -> bool:
@@ -28,17 +29,13 @@ def handle_server_msg(data:HTTPServerRequest):
     return get_req_with_code(data,'ERROR',404)
 def send_log_file(data:HTTPServerRequest):
     #with http probably. at server it will send one
-    host_name = data.headers.get('WEB_NAME')
+    host_name:str = data.headers.get('WEB_NAME')
     if not host_name:
         return get_req_with_code(data, "Error", 401)
     host_name = host_name.replace("/","")
     host_name = host_name.replace("\\","")
-    file_path = "logs/outer/"+host_name
-    if os.path.exists(file_path):
-        with open(file_path,"r") as f:
-            log_content: str = f.read()
-
-    else:
+    log_content = _OuterLogger().get_logged_data(host_name)
+    if not log_content:
         return get_req_with_code(data, "Error", 402)
     return get_req_with_code(data, log_content)
 def get_prefs() -> None:

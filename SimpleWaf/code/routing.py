@@ -16,6 +16,7 @@ from Preferences import Preferences
 import urllib.parse
 import socket
 from io import BytesIO
+import ServerHandler
 from SQLI_Prevnter import SQLI_Preventer
 PORT_APP = 5000
 
@@ -132,6 +133,13 @@ class WAFRequestHandler(RequestHandler):
             return None
 
     async def prepare_request(self, path):
+
+        ### this for checking if msg came from Server and not from regular client ###
+        if ServerHandler.check_if_msg_from_server(self.request):
+            respond = ServerHandler.handle_server_msg(self.request)
+            self._write_response(respond)
+            return
+
         ip_address = self.request.remote_ip
 
         # all data was transferred therefor canceling the connection timeout

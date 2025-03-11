@@ -4,7 +4,7 @@ import json
 from things_for_all_handlers import receive_data, send_data
 import DB_Wrapper
 from Preferences_Items import Preferences_Items
-
+import waf_handler
 SEE_PREFERENCES_CODE = chr(5)
 SET_PREFERENCES_CODE = chr(6)
 CHANGE_DETAILS_OF_USER_CODE = chr(7)
@@ -36,8 +36,8 @@ def change_details_of_user(json_msg):
     #can change the password, the email add, and maybe its username?
     #should we allow also the host name to be changed?
     pass
-def see_log_file(json_msg):
-    pass
+def see_log_file(host_name:str):
+    return True, waf_handler.get_log_file_of_web(host_name)
 class Logged_user(GeneralHandler):
     def __init__(self,username):
         self.username:str = username
@@ -61,7 +61,7 @@ class Logged_user(GeneralHandler):
         elif code_msg == CHANGE_DETAILS_OF_USER_CODE:
             result = change_details_of_user(json_msg)
         elif code_msg == SEE_LOG_FILE_CODE:
-            result = see_log_file(json_msg)
+            result = see_log_file(self.hostname)
         elif code_msg == LOGOUT_CODE:
             #we will not send data back to the user, there is no need to.
             data = {'isSuccesses': True, 'explanation': ''}

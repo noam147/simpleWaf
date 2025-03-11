@@ -2,7 +2,7 @@ from client_program import check_status_after_exec, get_menu, UNLOGGED_SCREEN, E
 import json
 import socket_client
 
-available_commands = ['See Preferences','Set Preferences','Change Details Of User','Log Out','Delete User', 'Delete Web From WAF Defence System', 'Exit']
+available_commands = ['See Preferences','Set Preferences','See Log File','Change Details Of User','Log Out','Delete User', 'Delete Web From WAF Defence System', 'Exit']
 
 dict_available_commands = {index: command for index, command in enumerate(available_commands,1)}
 SEE_PREFERENCES_CODE = chr(5)
@@ -19,7 +19,12 @@ def see_preferences():
     #todo prase the answer for better looking
     msg_from_server = json.loads(answer)
     print(answer)
-
+def see_log_file():
+    full_msg = SEE_LOG_FILE_CODE + "{}"
+    socket_client.send_data(full_msg)
+    answer = socket_client.receive_data()
+    # todo prase the answer for better looking
+    print(answer)
 
 @check_status_after_exec
 def set_preferences():
@@ -60,6 +65,8 @@ def logged_user():
             see_preferences()
         elif actual_command == 'Set Preferences':
             set_preferences()
+        elif actual_command == 'See Log File':
+            see_log_file()
         elif actual_command == 'Log Out':
             full_msg = LOGOUT_CODE + "{}"
             socket_client.send_data(full_msg)
