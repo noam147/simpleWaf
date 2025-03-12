@@ -62,11 +62,12 @@ class _OuterLogger:
         self._protect_logger()
         os.makedirs(self.log_dir, exist_ok=True)
         self.loggers = {}
-    def _get_website_name_without_speacial_characters(self,website_name:str)->str:
+    @staticmethod
+    def _get_website_name_without_speacial_characters(website_name:str)->str:
         """func is for preventing attackers to do file traversal into our log system and get classified data"""
         new_website_name = ""
         for letter in website_name:
-            if letter.isalpha() or letter.isdigit():
+            if letter.isalpha() or letter.isdigit() or letter in ['.','-']:
                 new_website_name+=letter
         return new_website_name
     def _get_logger(self, website_name):
@@ -84,7 +85,7 @@ class _OuterLogger:
         logger.info(json.dumps(message.data_to_dict()))
 
     def get_logged_data(self, website_name):
-        log_file = f"{self.log_dir}/{website_name}.log"
+        log_file = f"{self.log_dir}/{_OuterLogger._get_website_name_without_speacial_characters(website_name)}.log"
         if os.path.exists(log_file):
             with open(log_file, "r") as file:
                 return file.read()

@@ -1,6 +1,6 @@
 import socket
 import threading
-from unlogged_user_menu import handel_user
+from Manage_handlers import handle_user
 IP_ADD = '0.0.0.0'
 SERVER_PORT = 47777
 server_socket:socket.socket = None
@@ -24,12 +24,9 @@ def accept_client():
         client_socket, client_address = server_socket.accept()
         print(client_socket)
         print(client_address)
-        #todo pass them in thread to treat them
-        #client_socket.send(guiStaff.start_of_screen)
-        t = threading.Thread(target=handel_user,args = (client_socket,client_address))
+        t = threading.Thread(target=handle_user,args =(client_socket,))
         t.daemon = True
         t.start()
-        #handel_user(client_socket,client_address)
 def at_end():
     global server_socket
     server_socket.close()
@@ -39,6 +36,6 @@ def at_end():
 
 if __name__ == '__main__':
     if not at_start():
-        print("ho no")
+        print("for some reason server can not be established.")
     accept_client()
-    at_end()
+    at_end()#not really going to get exec..
