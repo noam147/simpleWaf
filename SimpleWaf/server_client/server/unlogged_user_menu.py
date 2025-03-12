@@ -46,12 +46,11 @@ def login(json_msg) -> tuple[bool,str]:
 
 #### way of operation - user will send a msmg code and after that details in json like trivia.......
 class Unlogged_user(GeneralHandler):
-    def handle_user(self,client_socket: socket.socket):
-        msg = receive_data(client_socket)
-        code_msg = msg[0]
+    def handle_user(self,client_socket: socket.socket,current_msg:str):
+        code_msg = current_msg[0]
         try:
             #just like trivia
-            json_msg = json.loads(msg[1:])
+            json_msg = json.loads(current_msg[1:])
         except Exception as e:
             send_data(client_socket, "Invalid request.")
             return self

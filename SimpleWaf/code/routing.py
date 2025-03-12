@@ -4,6 +4,8 @@ from tornado.httpclient import AsyncHTTPClient, HTTPRequest, HTTPResponse, httpu
 from tornado.escape import json_decode
 import DB_Wrapper
 from urllib.parse import urlparse, urlencode
+
+import Preferences_Items
 from XSS_Prevent import XSS_Preventer
 import slow_loris_detect
 from SearchAttackHelper import SearchAttacks
@@ -49,7 +51,6 @@ class WAFRequestHandler(RequestHandler):
         #if ip_add == "127.0.0.1":
         #    return False
         return memory_handler.get_is_ip_attacker(ip_add)
-        return DB_Wrapper.is_ip_blocked(ip_add)
 
     def alert_to_logger(self, host_name: str, ip_attacker: str, attack_method: str):
         l = logger.Logger()
@@ -138,7 +139,9 @@ class WAFRequestHandler(RequestHandler):
 
         ### this for checking if msg came from Server and not from regular client ###
         if ServerHandler.check_if_msg_from_server(self.request):
+            print('msg from server detected')
             respond = ServerHandler.handle_server_msg(self.request)
+            print(respond)
             self._write_response(respond)
             return
 
@@ -176,7 +179,7 @@ class WAFRequestHandler(RequestHandler):
             #alert db
 
             ### todo - send to the server the creds of attacker so that the serve can save it in his db
-            DB_Wrapper.when_find_attacker(ip_address)
+            #DB_Wrapper.when_find_attacker(ip_address)
 
             free_date = DB_Wrapper.calc_attacker_free_date(ip_address,1)
             memory_handler.data_dict[memory_handler.ATTACKERS][ip_address] = free_date
@@ -190,10 +193,9 @@ class WAFRequestHandler(RequestHandler):
         self.request = XSS_Preventer.edit_request(self.request)
         self.request = SQLI_Preventer.edit_request(self.request)
         ### need optimazation - to not fetch from db each time... ###
-        pref_of_host_name_in_memory = Preferences.get_preferences_of_website(host_name)
+        pref_of_host_name_in_memory = memory_handler.get_prefs_of_web(host_name)
         #memory_handler.data_dict[Preferences]
         if pref_of_host_name_in_memory == None:
-            DB_Wrapper.print_table_values("preferences")
             print("NEED TO ENTER PREF FOR THIS WEB: "+host_name)
             new_url = f"https://{website_ip}/{path}"
         else:
@@ -329,15 +331,14 @@ def make_app():
          dict(connections=connections, connection_timeout_handles=connection_timeout_handles,
               chunk_timeout_handles=chunk_timeout_handles)),
     ], **settings)
-
+def get_prefs_from_server():
+    while True:
+        if ServerHandler.get_prefs():
+            return
+        time.sleep(4)
 
 if __name__ == "__main__":
-    # delete attacker for testing at start
-    DB_Wrapper.delete_attacker("127.0.0.1")
-
-    ## todo change this when we have the working func of getting data from server
-    memory_handler.example_of_getting_data()
-
+    get_prefs_from_server()
 
     import DDOS_Scanner
     DDOS_Scanner.DDOSScanner.activate_at_start()
@@ -348,11 +349,6 @@ if __name__ == "__main__":
         "database": "wafDataBase"
     }"""
 
-    #delete attacker for testing at start
-    DB_Wrapper.delete_attacker("127.0.0.1")
-    import DDOS_Scanner
-    DDOS_Scanner.DDOSScanner.activate_at_start()
-    Preferences.at_start()
     app = make_app()
     app.listen(PORT_APP)
     print(f"Running Tornado app on port {PORT_APP}")

@@ -42,6 +42,9 @@ def when_find_attacker(attacker_ip: str):
 def drop_table(table_name:str):
     query = "DROP TABLE IF EXISTS " + table_name
     exec_command(query)
+def get_table_values(table_name:str):
+    query = "SELECT * FROM " + table_name
+    return exec_command(query,())
 
 def print_table_values(table_name:str):
     """func for debug"""
