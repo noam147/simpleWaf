@@ -18,17 +18,17 @@ def calc_n_days_from_now(n:int) -> str:
     future_date = current_date + timedelta(days=n)
     formatted_date = future_date.strftime('%Y-%m-%d')
     return formatted_date
-def calc_days_until_free_for_attack(attacker_ip: str) -> int:
+def calc_days_until_free_for_attack(attacker_ip: str,num_of_days:int=30) -> int:
     ### get the current score ###
-    NUM_OF_DAYS = 30
+    #NUM_OF_DAYS = 30
     current_score = get_score_of_attacker(attacker_ip)
-    DAYS_UNTIL_FREE: int = int(NUM_OF_DAYS * current_score)
+    DAYS_UNTIL_FREE: int = int(num_of_days * current_score)
     return DAYS_UNTIL_FREE
-def calc_attacker_free_date(attacker_ip: str) -> str:
+def calc_attacker_free_date(attacker_ip: str,num_of_days_to_block:int = 30) -> str:
     ### update the score ###
     special_insert_or_update_attackers_score(attacker_ip)
 
-    days_until_free = calc_days_until_free_for_attack(attacker_ip)
+    days_until_free = calc_days_until_free_for_attack(attacker_ip,num_of_days_to_block)
 
     return calc_n_days_from_now(days_until_free)
 
@@ -42,6 +42,9 @@ def when_find_attacker(attacker_ip: str):
 def drop_table(table_name:str):
     query = "DROP TABLE IF EXISTS " + table_name
     exec_command(query)
+def get_table_values(table_name:str):
+    query = "SELECT * FROM " + table_name
+    return exec_command(query,())
 
 def print_table_values(table_name:str):
     """func for debug"""
