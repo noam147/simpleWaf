@@ -10,7 +10,9 @@ class SQLI_Preventer(Attack_Scanner):
         text = text.replace("'","&#x27;")
         return text
     @staticmethod
-    def edit_request(request: HTTPServerRequest) -> HTTPServerRequest:
+    def edit_request(request: HTTPServerRequest,pref_of_web) -> HTTPServerRequest:
+        if isinstance(pref_of_web,bool) and pref_of_web == True:
+            return request
         request.uri = SQLI_Preventer.replace_sql(request.uri)
         new_headers = {}
         for key,val in request.headers.items():

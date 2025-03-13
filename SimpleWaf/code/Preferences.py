@@ -32,6 +32,9 @@ class Preferences:
             curr_pref = DB_Wrapper.get_preferences_by_host_name(actual_host_name)
             Preferences.preferences_dict[actual_host_name] = curr_pref
     @staticmethod
+    def get_generic_prefs(host_name:str) -> Preferences_Items:
+        return Preferences_Items([(host_name,2,True,True,2,False,2,443,True)])
+    @staticmethod
     def get_preferences_of_website(host_name:str) -> Preferences_Items:
         """func will return a Preferences_Items that contains the website preferences for attacks"""
         """if the website is not in the dict, return null"""

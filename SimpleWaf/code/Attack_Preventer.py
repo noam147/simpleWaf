@@ -9,7 +9,7 @@ from abc import ABC, abstractmethod
 class Attack_Scanner(ABC):
     @staticmethod
     @abstractmethod
-    def edit_request(request: HTTPServerRequest) -> HTTPServerRequest:
+    def edit_request(request: HTTPServerRequest,pref_of_web) -> HTTPServerRequest:
         """
         searches the attack in the data, will return True if attack found(False if not)
         assumption: the data is already decoded

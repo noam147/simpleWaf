@@ -167,9 +167,13 @@ class WAFRequestHandler(RequestHandler):
         # For debug
         # await self._see_params()
 
+        ### need optimazation - to not fetch from db each time... ###
+        pref_of_host_name_in_memory = Preferences.get_preferences_of_website(host_name)
+        if pref_of_host_name_in_memory == None:
+            pref_of_host_name_in_memory = Preferences.get_generic_prefs(host_name)
         # Check for attacks
         current = SearchAttacks(self.request)
-        name_of_attack = current.search_attacks()
+        name_of_attack = current.search_attacks(pref_of_host_name_in_memory)
         if name_of_attack == "":#if there is no attack
             pass
         else:#if there was an attack

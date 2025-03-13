@@ -11,6 +11,7 @@ class Preferences_Items:
         self.port:int = preferences[7]
         self.isHttps:bool = preferences[8]#if false we will do http...
 
+
     def to_string(self) -> str:
         return (
             f"Preferences Of {self.host_name}:\n"

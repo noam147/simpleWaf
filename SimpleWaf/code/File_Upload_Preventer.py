@@ -18,8 +18,11 @@ class File_Upload_Preventer(Attack_Scanner):
             return "UNNAMEDFILE"
         return curr_name
     @staticmethod
-    def edit_request(request: HTTPServerRequest) -> HTTPServerRequest:
-
+    def edit_request(request: HTTPServerRequest,pref_of_web) -> HTTPServerRequest:
+        if isinstance(pref_of_web, bool):
+            if pref_of_web == False:
+                # if web does not want protection
+                return request
         """iterate over files and change their name by removing special chars"""
         if 'files' in request.files:
             # Iterate through the files sent in the request
