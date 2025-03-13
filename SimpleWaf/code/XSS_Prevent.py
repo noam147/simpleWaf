@@ -10,7 +10,11 @@ class XSS_Preventer(Attack_Scanner):
         text = text.replace(">","&gt;")
         return text
     @staticmethod
-    def edit_request(request: HTTPServerRequest) -> HTTPServerRequest:
+    def edit_request(request: HTTPServerRequest, pref_of_web) -> HTTPServerRequest:
+        if isinstance(pref_of_web,bool):
+            if pref_of_web == False:
+                #if web does not want xss protection
+                return request
         request.uri = XSS_Preventer.replace_xss(request.uri)
         new_headers = {}
         for key,val in request.headers.items():

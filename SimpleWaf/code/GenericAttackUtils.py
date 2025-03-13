@@ -16,7 +16,12 @@ class StrictnessLevel(Enum):
     LOW = 0  # no defense
     MID = 1  # specific
     STRICT = 2
-
+def get_strictness_from_int(stric_int) -> StrictnessLevel:
+    """use in attacks search, the default will be strict"""
+    strictness = (StrictnessLevel.LOW if stric_int == 0 else
+                  StrictnessLevel.MID if stric_int == 1
+                  else StrictnessLevel.STRICT)
+    return strictness
 
 @dataclass
 class AttackRule:

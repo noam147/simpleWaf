@@ -3,7 +3,7 @@
 from tornado.httputil import HTTPServerRequest
 from Attack_Scanner import IAttack_Scanner
 import urllib.parse
-
+from GenericAttackUtils import StrictnessLevel,get_strictness_from_int
 ATTACKER_RETURN = ["ATTACKER!"]
 def get_content_dispostion_from_headers(data: HTTPServerRequest):
     keyword = "boundary="
@@ -111,13 +111,22 @@ class Files_Scanner(IAttack_Scanner):
                     return True
         return False
     @staticmethod
-    def scan(data: HTTPServerRequest) -> bool:
+    def scan(data: HTTPServerRequest, pref_of_web) -> bool:
         """levels for -
         block anyone who tries php files - 1
         block anyone who tries to upload files that are not in the waf format - 2"""
-        if Files_Scanner.search_file_traversal(data):
-            return True
-        if Files_Scanner.search_file_formats(data):
-            return True
+        if isinstance(pref_of_web, int):
+            strictness = get_strictness_from_int(pref_of_web)
+        else:
+            print("error on file upload. check type of pref")
+            strictness = StrictnessLevel.STRICT
+        if strictness != StrictnessLevel.LOW:
+
+            if Files_Scanner.search_file_traversal(data):
+                return True
+        if strictness == StrictnessLevel.STRICT:
+
+            if Files_Scanner.search_file_formats(data):
+                return True
         return False
 
