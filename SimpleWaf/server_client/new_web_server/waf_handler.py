@@ -69,6 +69,5 @@ def getting_data():
         str_attacker_free_date = attacker_freedate.strftime("%Y-%m-%d")
         data_dict[ATTACKERS][attacker_ip] = str_attacker_free_date
     return json.dumps(data_dict)
-def send_pref(sock:socket.socket):
-    msg:str = getting_data()
-    sock.sendall(msg.encode())
+def send_pref():
+    return getting_data()
