@@ -335,6 +335,7 @@ def get_prefs_from_server():
     while True:
         if ServerHandler.get_prefs():
             return
+        print("activate Server")
         time.sleep(4)
 
 if __name__ == "__main__":

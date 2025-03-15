@@ -2,12 +2,13 @@ import os
 from tornado.httputil import HTTPServerRequest
 from tornado.httpclient import HTTPResponse,HTTPRequest
 from io import BytesIO
-import socket
+import requests
 from logger import _OuterLogger
 import memory_handler
 import json
 SERVER_IP = '127.0.0.1'
 SERVER_PORT = 47777
+get_db_rout = "data_base"
 def check_if_msg_from_server(data:HTTPServerRequest) -> bool:
     #todo make better checking, now this is weak...
     server_header = data.headers.get('WEB_NAME')
@@ -41,18 +42,13 @@ def send_log_file(data:HTTPServerRequest):
         return get_req_with_code(data, "Error", 402)
     return get_req_with_code(data, log_content)
 def get_prefs() -> bool:
-    #todo activate this func with while True loop.
+    url = f"http://{SERVER_IP}:{SERVER_PORT}/{get_db_rout}"
+    headers_for_auth = {'Key':'THIS IS WAF'}
     try:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-            sock.connect((SERVER_IP,SERVER_PORT))
-            msg_tosend = chr(33)+"{\"key\":\"THIS IS WAF\"}"
-            sock.sendall(msg_tosend.encode())
-            data = sock.recv(2056)
-            data = data.decode('utf-8')
-            memory_handler.data_dict = json.loads(data)
-            #todo prase the data into memory handler
+        response = requests.get(url,headers=headers_for_auth)
+        memory_handler.data_dict = json.loads(response.text)
     except Exception as e:
-        print('ho no. can not get prefs of websites. PLEASE ACTIVATE THE SERVER')
         return False
     return True
+
 
