@@ -1,8 +1,9 @@
 class Preferences_Items:
     def __init__(self,preferences:list):
+        #example of input is:
+        #[("mySite.com",2,False,True,2,True,1,80,False)]
+
         preferences:tuple = preferences[0]### get the actuall data tuple
-        if len(preferences) != 8:
-            print(f"should not happen. pref of {preferences[0]} is corrupted")
         self.host_name:str = preferences[0]
         self.sql_level:int = preferences[1]
         self.xss_defence:bool = preferences[2]
@@ -12,7 +13,6 @@ class Preferences_Items:
         self.os_level:int = preferences[6]
         self.port:int = preferences[7]
         self.isHttps:bool = preferences[8]#if false we will do http...
-
 
     def to_string(self) -> str:
         return (
@@ -27,3 +27,17 @@ class Preferences_Items:
             f"Port: {self.port}\n"
             f"Protocol: {'HTTPS' if self.isHttps else 'HTTP'}"
         )
+
+    def to_dict(self) -> dict:
+        return {
+            "host_name": self.host_name,
+            "sql_level": self.sql_level,
+            "xss_defence": self.xss_defence,
+            "hpp_defence": self.hpp_defence,
+            "file_attack_level": self.file_attack_level,
+            "to_send_email": self.to_send_email,
+            "os_level": self.os_level,
+            "port": self.port,
+            "isHttps": self.isHttps
+        }
+

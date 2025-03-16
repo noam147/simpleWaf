@@ -1,5 +1,7 @@
 from datetime import datetime
 
+import Preferences
+
 ### this file will contain the data that the waf will use ###
 ### this is baisicly the db data - but in memory for better performance ###
 
@@ -52,6 +54,21 @@ def get_is_ip_attacker(ip_add:str) -> bool:
     except Exception as e:
         print(e)
         return False
+def get_prefs_of_web(hostname:str) -> Preferences.Preferences_Items:
+    try:
+        hostname = hostname.lower()
+        prefs = data_dict[PREFERENCES][hostname]
+        return Preferences.Preferences_Items([prefs])
+    except Exception:
+        return None
+def get_data_from_server(websites_ip_table_vals,preferences_table_vals,attackers_table_vals):
+    data_dict[WEBSITES_IP] = {}
+    for curr_web in websites_ip_table_vals:
+        host_name: str = curr_web[0]
+        host_name = host_name.lower()
+        ip_add: str = curr_web[1]
+        data_dict[WEBSITES_IP][host_name] = ip_add
+
 def example_of_getting_data():
     ### in the real case, we will get the info from the other server when the WAF starts ###
     ##
