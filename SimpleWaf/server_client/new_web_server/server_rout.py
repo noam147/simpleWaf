@@ -17,11 +17,11 @@ def get_file_content(file_path):
         return "Try again later"
 @app.route('/')
 def open_screen():
-    file_path = "../new_web_client/index.html"
+    file_path = "../web_files/index.html"
     return get_file_content(file_path)
 @app.route('/login', methods=['GET'])
 def get_login_screen():
-    file_path = "../new_web_client/login.html"
+    file_path = "../web_files/login.html"
     return get_file_content(file_path)
 @app.route('/add_user', methods=['POST'])
 def add_user_route():
