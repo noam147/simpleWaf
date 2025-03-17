@@ -20,13 +20,32 @@ def add_user(json_msg) -> tuple[bool,str]:
     if DB_Wrapper.insert_into_website_login(host_name,username,password,email):
         return True,""
     return False,"error with db"
+def is_valid_ip(ip_add:str) -> bool:
+    """when inserting ip func will check if ip is a real ip"""
+    parts = ip_add.split(".")
+    # we will take just ipv4 for now
+    if len(parts) != 4:
+        return False
+    for part in parts:
+        if not part.isdigit():
+            return False
+        num = int(part)
+        if num < 0 or num > 255:
+            return False
+       #for zeros at start like 01
+        if part != str(num):
+            return False
+    return True
 def add_website(json_msg) -> tuple[bool,str]:
     try:
+        print(json_msg)
         host_name:str = json_msg["host_name"]
         ip_add = json_msg["ip_add"]
     except Exception:
         return False, "msg is corrupted, check json values"
     host_name = host_name.lower()#to prevent mismtach in capitals.
+    if not is_valid_ip(ip_add):
+        return False, "ip address is not supported."
     DB_Wrapper.special_insert_or_update_website_ip(host_name, ip_add)
     return True,""
 def login(json_msg) -> tuple[bool,str]:

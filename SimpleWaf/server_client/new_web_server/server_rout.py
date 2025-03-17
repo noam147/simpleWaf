@@ -1,4 +1,4 @@
-from flask import Flask, session, request, jsonify
+from flask import Flask, session, request, jsonify,redirect,url_for
 import DB_Wrapper
 import unlogged_user_menu
 import logged_user_menu
@@ -17,11 +17,19 @@ def get_file_content(file_path):
         return "Try again later"
 @app.route('/')
 def open_screen():
-    file_path = "../new_web_client/index.html"
+    file_path = "../web_files/index.html"
     return get_file_content(file_path)
 @app.route('/login', methods=['GET'])
 def get_login_screen():
-    file_path = "../new_web_client/login.html"
+    file_path = "../web_files/login.html"
+    return get_file_content(file_path)
+@app.route('/add_website', methods=['GET'])
+def get_add_website_screen():
+    file_path = "../web_files/add_website.html"
+    return get_file_content(file_path)
+@app.route('/add_user', methods=['GET'])
+def get_add_user_screen():
+    file_path = "../web_files/add_user.html"
     return get_file_content(file_path)
 @app.route('/add_user', methods=['POST'])
 def add_user_route():
@@ -33,6 +41,7 @@ def add_website_route():
     json_msg = request.get_json()
     success, message = unlogged_user_menu.add_website(json_msg)
     return jsonify({"success": success, "message": message})
+
 
 @app.route('/login', methods=['POST'])
 def login_route():
@@ -50,7 +59,7 @@ def login_route():
 def see_preferences_route():
     hostname = get_session_host_name()
     if hostname == UNLOGGED:
-        return "Log In Page.html"
+        return redirect(url_for("login_route"))
     success, data = logged_user_menu.see_preferences(hostname)
     return jsonify({"success": success, "data": data})
 
@@ -58,7 +67,7 @@ def see_preferences_route():
 def set_preferences_route():
     hostname = get_session_host_name()
     if hostname == UNLOGGED:
-        return "Log In Page.html"
+        return redirect(url_for("login_route"))
     json_msg = request.get_json()
     success, message = logged_user_menu.set_preferences(json_msg, hostname)
     return jsonify({"success": success, "message": message})
@@ -67,7 +76,7 @@ def set_preferences_route():
 def see_log_file_route():
     hostname = get_session_host_name()
     if hostname == UNLOGGED:
-        return "Log In Page.html"
+        return redirect(url_for("login_route"))
     success, log_data = logged_user_menu.see_log_file(hostname)
     return jsonify({"success": success, "log_data": log_data})
 @app.route('/data_base', methods=['GET'])
