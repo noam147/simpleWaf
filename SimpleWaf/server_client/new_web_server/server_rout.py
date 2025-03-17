@@ -111,4 +111,4 @@ def get_session_username():
 def get_session_host_name():
     return session.get("credentials_H", UNLOGGED)
 if __name__ == '__main__':
-    app.run(debug=True,port=SERVER_PORT)#todo change debug in production to false
+    app.run(debug=True,port=SERVER_PORT,host="0.0.0.0")#todo change debug in production to false
