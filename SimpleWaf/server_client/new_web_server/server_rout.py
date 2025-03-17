@@ -61,6 +61,7 @@ def see_preferences_route():
     if hostname == UNLOGGED:
         return redirect(url_for("login_route"))
     success, data = logged_user_menu.see_preferences(hostname)
+    #todo return maybe some html file that will help the user to edit the prefs
     return jsonify({"success": success, "data": data})
 
 @app.route('/set_preferences', methods=['POST'])
@@ -78,6 +79,8 @@ def see_log_file_route():
     if hostname == UNLOGGED:
         return redirect(url_for("login_route"))
     success, log_data = logged_user_menu.see_log_file(hostname)
+    if log_data == 'Error' and success == True:
+        return jsonify({"success": success, "log_data": "Log File is Empty"})
     return jsonify({"success": success, "log_data": log_data})
 @app.route('/data_base', methods=['GET'])
 def get_db():
