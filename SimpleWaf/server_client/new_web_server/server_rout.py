@@ -1,4 +1,4 @@
-from flask import Flask, session, request, jsonify,redirect,url_for
+from flask import Flask, session, request, jsonify,redirect,url_for,send_file
 import DB_Wrapper
 import unlogged_user_menu
 import logged_user_menu
@@ -19,6 +19,17 @@ def get_file_content(file_path):
 def open_screen():
     file_path = "../web_files/index.html"
     return get_file_content(file_path)
+@app.route('/images/<img_name>')
+def get_img(img_name):
+    img_name = img_name.replace("\\", "")
+    img_name = img_name.replace("/", "")
+    file_path = f"../web_files/images/{img_name}"
+    print(file_path)
+    try:
+        # Sending the image file
+        return send_file(file_path, mimetype='image/png')  # Adjust the mimetype if needed
+    except FileNotFoundError:
+        return "Image not found", 404
 @app.route('/login', methods=['GET'])
 def get_login_screen():
     file_path = "../web_files/login.html"
