@@ -1,8 +1,10 @@
-from flask import Flask, session, request, jsonify,redirect,url_for,send_file
+from flask import Flask,render_template, session, request, jsonify,redirect,url_for,send_file
 import DB_Wrapper
 import unlogged_user_menu
 import logged_user_menu
 import waf_handler
+import json
+from collections import Counter
 app = Flask(__name__)
 app.secret_key = 'dragon_castle_key_secure'
 UNLOGGED = 'Guest'
@@ -72,6 +74,7 @@ def see_preferences_route():
     if hostname == UNLOGGED:
         return redirect(url_for("login_route"))
     success, data = logged_user_menu.see_preferences(hostname)
+
     #todo return maybe some html file that will help the user to edit the prefs
     return jsonify({"success": success, "data": data})
 
@@ -83,6 +86,14 @@ def set_preferences_route():
     json_msg = request.get_json()
     success, message = logged_user_menu.set_preferences(json_msg, hostname)
     return jsonify({"success": success, "message": message})
+def get_good_logs(log_data):
+    try:
+        log_entries = [json.loads(line) for line in log_data.split("\n") if line.strip()]
+        attack_types = [entry["attack type"] for entry in log_entries]
+        attack_counts = dict(Counter(attack_types))
+        return render_template("log_file.html",attack_counts=attack_counts, logs=log_entries)
+    except Exception as e:
+        return jsonify({"success": False, "log_data": "Error during phrasing"})
 
 @app.route('/log_file', methods=['GET'])
 def see_log_file_route():
@@ -92,7 +103,9 @@ def see_log_file_route():
     success, log_data = logged_user_menu.see_log_file(hostname)
     if log_data == 'Error' and success == True:
         return jsonify({"success": success, "log_data": "Log File is Empty"})
-    return jsonify({"success": success, "log_data": log_data})
+
+    return get_good_logs(log_data)
+    #return jsonify({"success": success, "log_data": log_data})
 @app.route('/data_base', methods=['GET'])
 def get_db():
     #this is only to WAF...

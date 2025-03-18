@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log File - Attack Statistics</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        canvas {
+            max-width: 500px;
+            margin: 20px auto;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Attack Logs</h1>
+
+    <!-- Log Table -->
+    <table>
+        <thead>
+            <tr>
+                <th>Timestamp</th>
+                <th>Domain</th>
+                <th>IP Address</th>
+                <th>Attack Type</th>
+                <th>Timeout</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+            <tr>
+                <td>{{ log.timestamp }}</td>
+                <td>{{ log.domain }}</td>
+                <td>{{ log.ip }}</td>
+                <td>{{ log["attack type"] }}</td>
+                <td>{{ log.timeout }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>Attack Type Distribution</h2>
+    <canvas id="attackChart"></canvas>
+
+    <script>
+        // Attack data from Flask
+        var attackData = {{ attack_counts | tojson }};
+
+        // Extract labels and values
+        var labels = Object.keys(attackData);
+        var values = Object.values(attackData);
+
+        // Colors for the pie chart
+        var colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4CAF50', '#9C27B0'];
+
+        // Create Pie Chart
+        var ctx = document.getElementById('attackChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: colors,
+                }]
+            }
+        });
+    </script>
+
+</body>
+</html>
