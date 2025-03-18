@@ -95,6 +95,8 @@
                 if (data.success) {
                     alert("Website added successfully!");
                 } else {
+				console.log(data);
+				document.getElementById('error-message').textContent = data.message;
                     document.getElementById('error-message').style.display = 'block';
                 }
             })

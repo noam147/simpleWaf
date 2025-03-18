@@ -46,6 +46,8 @@ def add_website(json_msg) -> tuple[bool,str]:
     host_name = host_name.lower()#to prevent mismtach in capitals.
     if not is_valid_ip(ip_add):
         return False, "ip address is not supported."
+    if DB_Wrapper.get_if_host_name_exist(host_name):
+        return False, "host name already exist in WAF lists."
     DB_Wrapper.special_insert_or_update_website_ip(host_name, ip_add)
     return True,""
 def login(json_msg) -> tuple[bool,str]:

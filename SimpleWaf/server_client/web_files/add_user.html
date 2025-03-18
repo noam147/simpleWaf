@@ -99,8 +99,10 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+
                     alert("User added successfully!");
                 } else {
+				document.getElementById('error-message').textContent = data.message;
                     document.getElementById('error-message').style.display = 'block';
                 }
             })
