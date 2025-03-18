@@ -171,7 +171,7 @@ class WAFRequestHandler(RequestHandler):
         # await self._see_params()
 
         ### need optimazation - to not fetch from db each time... ###
-        pref_of_host_name_in_memory = Preferences.get_preferences_of_website(host_name)
+        pref_of_host_name_in_memory = memory_handler.get_prefs_of_web(host_name)
         if pref_of_host_name_in_memory == None:
             pref_of_host_name_in_memory = Preferences.get_generic_prefs(host_name)
         # Check for attacks
@@ -194,10 +194,9 @@ class WAFRequestHandler(RequestHandler):
             self.send_empty_msg_with_code(ATTACK_FOUND_CODE)
             return
         ### replace the xss and sql todo check with prefrences before###
-        self.request = XSS_Preventer.edit_request(self.request)
-        self.request = SQLI_Preventer.edit_request(self.request)
-        ### need optimazation - to not fetch from db each time... ###
-        pref_of_host_name_in_memory = memory_handler.get_prefs_of_web(host_name)
+        self.request = XSS_Preventer.edit_request(self.request,pref_of_host_name_in_memory.xss_defence)
+        self.request = SQLI_Preventer.edit_request(self.request,False)
+
         #memory_handler.data_dict[Preferences]
         if pref_of_host_name_in_memory == None:
             print("NEED TO ENTER PREF FOR THIS WEB: "+host_name)

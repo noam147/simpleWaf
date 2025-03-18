@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preferences</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        form {
+            display: inline-block;
+            text-align: left;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            width: 300px;
+            background: #f9f9f9;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .toggle-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Preferences Settings</h2>
+    
+    <form id="preferencesForm">
+        <label for="file_attack_level">File Attack Level:</label>
+        <input type="number" id="file_attack_level" value="{{ data.file_attack_level }}" min="1" max="5">
+
+        <label for="host_name">Host Name:</label>
+        <input type="text" id="host_name" value="{{ data.host_name }}">
+
+        <div class="toggle-container">
+            <label for="hpp_defence">HPP Defence:</label>
+            <input type="checkbox" id="hpp_defence" {% if data.hpp_defence %}checked{% endif %}>
+        </div>
+
+        <div class="toggle-container">
+            <label for="isHttps">HTTPS:</label>
+            <input type="checkbox" id="isHttps" {% if data.isHttps %}checked{% endif %}>
+        </div>
+
+        <label for="os_level">OS Level:</label>
+        <input type="number" id="os_level" value="{{ data.os_level }}" min="1" max="5">
+
+        <label for="port">Port:</label>
+        <input type="number" id="port" value="{{ data.port }}">
+
+        <label for="sql_level">SQL Level:</label>
+        <input type="number" id="sql_level" value="{{ data.sql_level }}" min="1" max="5">
+
+        <div class="toggle-container">
+            <label for="to_send_email">Send Email Notifications:</label>
+            <input type="checkbox" id="to_send_email" {% if data.to_send_email %}checked{% endif %}>
+        </div>
+
+        <div class="toggle-container">
+            <label for="xss_defence">XSS Defence:</label>
+            <input type="checkbox" id="xss_defence" {% if data.xss_defence %}checked{% endif %}>
+        </div>
+
+        <button type="button" onclick="sendPreferences()">Send</button>
+    </form>
+
+    <script>
+        function sendPreferences() {
+            const preferences = {
+                file_attack_level: parseInt(document.getElementById("file_attack_level").value),
+                host_name: document.getElementById("host_name").value,
+                hpp_defence: document.getElementById("hpp_defence").checked,
+                isHttps: document.getElementById("isHttps").checked,
+                os_level: parseInt(document.getElementById("os_level").value),
+                port: parseInt(document.getElementById("port").value),
+                sql_level: parseInt(document.getElementById("sql_level").value),
+                to_send_email: document.getElementById("to_send_email").checked,
+                xss_defence: document.getElementById("xss_defence").checked
+            };
+
+            fetch('/set_preferences', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(preferences)
+            })
+            .then(response => response.json())
+            .then(data => alert("Preferences updated successfully!"))
+            .catch(error => alert("Error updating preferences: " + error));
+        }
+    </script>
+
+</body>
+</html>

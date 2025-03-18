@@ -101,6 +101,7 @@
                 if (data.success) {
 
                     alert("User added successfully!");
+					window.location.href = '/';
                 } else {
 				document.getElementById('error-message').textContent = data.message;
                     document.getElementById('error-message').style.display = 'block';

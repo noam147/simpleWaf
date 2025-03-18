@@ -74,7 +74,8 @@ def see_preferences_route():
     if hostname == UNLOGGED:
         return redirect(url_for("login_route"))
     success, data = logged_user_menu.see_preferences(hostname)
-
+    if success:
+        return render_template("preferences.html", data=data)
     #todo return maybe some html file that will help the user to edit the prefs
     return jsonify({"success": success, "data": data})
 

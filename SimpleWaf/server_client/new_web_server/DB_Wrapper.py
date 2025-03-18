@@ -379,7 +379,9 @@ def special_insert_or_update_preferences_table_preferences_table(prefs:Preferenc
                         isHttps = VALUES(isHttps)
                     """
     args = (prefs.host_name,prefs.sql_level,prefs.xss_defence,prefs.hpp_defence,prefs.file_attack_level,prefs.to_send_email,prefs.os_level,prefs.port,prefs.isHttps)
-    exec_command(command, args)
+    result = exec_command(command, args)
+    print("restul is")
+    print(result)
 
 def get_preferences_by_host_name(host_name:str) -> Preferences_Items:
     """func will get the pref of a host name
