@@ -52,10 +52,9 @@ class WAFRequestHandler(RequestHandler):
         #    return False
         return memory_handler.get_is_ip_attacker(ip_add)
 
-    def alert_to_logger(self, host_name: str, ip_attacker: str, attack_method: str):
+    def alert_to_logger(self, host_name: str, ip_attacker: str, attack_method: str, timeout:str):
         l = logger.Logger()
         current_formatted_time = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
-        timeout = str(DB_Wrapper.calc_days_until_free_for_attack(ip_attacker))
         timeout += "d"#add the d for days
         data = logger.LogInfo(host_name, ip_attacker, attack_method, timeout, current_formatted_time)
         l.log(data)
@@ -187,11 +186,12 @@ class WAFRequestHandler(RequestHandler):
 
             ### todo - send to the server the creds of attacker so that the serve can save it in his db
             #DB_Wrapper.when_find_attacker(ip_address)
-            free_date: str = DB_Wrapper.calc_n_days_from_now(1)
+            timeout = 1
+            free_date: str = DB_Wrapper.calc_n_days_from_now(timeout)
             memory_handler.data_dict[memory_handler.ATTACKERS][ip_address] = free_date
             ServerHandler.alert_attacker(ip_address, free_date)
             #alert logger
-            self.alert_to_logger(host_name, ip_attacker=ip_address, attack_method=name_of_attack)
+            self.alert_to_logger(host_name, ip_attacker=ip_address, attack_method=name_of_attack,timeout=str(timeout))
             #abort request
             self.send_empty_msg_with_code(ATTACK_FOUND_CODE)
             return

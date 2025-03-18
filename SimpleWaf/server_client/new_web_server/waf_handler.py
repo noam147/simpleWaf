@@ -65,6 +65,8 @@ def getting_data():
     attackers_data = DB_Wrapper.get_table_values(ATTACKERS)
     for data_cell in attackers_data:
         attacker_ip = data_cell[0]
+        if attacker_ip == "127.0.0.1":
+            continue#todo remove in production
         attacker_freedate = data_cell[1]
         str_attacker_free_date = attacker_freedate.strftime("%Y-%m-%d")
         data_dict[ATTACKERS][attacker_ip] = str_attacker_free_date
