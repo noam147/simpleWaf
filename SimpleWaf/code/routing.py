@@ -178,16 +178,18 @@ class WAFRequestHandler(RequestHandler):
         current = SearchAttacks(self.request)
         name_of_attack = current.search_attacks(pref_of_host_name_in_memory)
         if name_of_attack == "":#if there is no attack
+
+
+
             pass
         else:#if there was an attack
             #alert db
 
             ### todo - send to the server the creds of attacker so that the serve can save it in his db
             #DB_Wrapper.when_find_attacker(ip_address)
-
-            free_date = DB_Wrapper.calc_attacker_free_date(ip_address,1)
+            free_date: str = DB_Wrapper.calc_n_days_from_now(1)
             memory_handler.data_dict[memory_handler.ATTACKERS][ip_address] = free_date
-
+            ServerHandler.alert_attacker(ip_address, free_date)
             #alert logger
             self.alert_to_logger(host_name, ip_attacker=ip_address, attack_method=name_of_attack)
             #abort request

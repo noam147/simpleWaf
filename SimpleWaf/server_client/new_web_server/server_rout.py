@@ -115,6 +115,21 @@ def get_db():
     if key != 'THIS IS WAF':
         return ""
     return waf_handler.send_pref()
+@app.route('/attacker_alert', methods=['GET'])
+def add_attacker():
+    attacker_ip = request.args.get("ip","")
+    free_date = request.args.get("free_date","")
+    if attacker_ip == "" or free_date == "":
+        return "Error"
+    #this is only to WAF...
+    key = request.headers.get("key","nothing")
+    print(request.headers)
+    if key != 'THIS IS WAF':
+        return ""
+    print(attacker_ip)
+    print(free_date)
+    DB_Wrapper.insert_into_attackers(attacker_ip, free_date)
+    return waf_handler.send_pref()
 def set_username(username:str):
     session['credentials_U'] = username
 def set_host_name(hostname:str):

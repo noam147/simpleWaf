@@ -9,6 +9,7 @@ import json
 SERVER_IP = '127.0.0.1'
 SERVER_PORT = 47777
 get_db_rout = "data_base"
+alert_attacker_rout = "attacker_alert"
 def check_if_msg_from_server(data:HTTPServerRequest) -> bool:
     #todo make better checking, now this is weak...
     server_header = data.headers.get('WEB_NAME')
@@ -50,5 +51,12 @@ def get_prefs() -> bool:
     except Exception as e:
         return False
     return True
+def alert_attacker(ip_add:str,free_date:str):
+    url = f"http://{SERVER_IP}:{SERVER_PORT}/{alert_attacker_rout}?ip={ip_add}&free_date={free_date}"
+    headers_for_auth = {'Key': 'THIS IS WAF'}
+    try:
+        response = requests.get(url, headers=headers_for_auth)
+    except Exception as e:
+        pass
 
 
