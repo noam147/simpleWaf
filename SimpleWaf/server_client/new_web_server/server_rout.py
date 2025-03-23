@@ -122,7 +122,8 @@ def see_log_file_route():
         return redirect(url_for("login_route"))
     success, log_data = logged_user_menu.see_log_file(hostname)
     if log_data == 'Error' and success == True:
-        return jsonify({"success": success, "log_data": "Log File is Empty"})
+        return "<h1>Log File is Empty<h1>"
+        #return jsonify({"success": success, "log_data": "Log File is Empty"})
 
     return get_good_logs(log_data)
     #return jsonify({"success": success, "log_data": log_data})
