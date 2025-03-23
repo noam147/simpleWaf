@@ -5,6 +5,7 @@ import logged_user_menu
 import waf_handler
 import json
 from collections import Counter
+import EmailSending
 app = Flask(__name__)
 app.secret_key = 'dragon_castle_key_secure'
 UNLOGGED = 'Guest'
@@ -139,6 +140,7 @@ def get_db():
 def add_attacker():
     attacker_ip = request.args.get("ip","")
     free_date = request.args.get("free_date","")
+    hostname = request.args.get("hostname","")
     if attacker_ip == "" or free_date == "":
         return "Error"
     #this is only to WAF...
@@ -149,6 +151,14 @@ def add_attacker():
     print(attacker_ip)
     print(free_date)
     DB_Wrapper.insert_into_attackers(attacker_ip, free_date)
+    print(hostname)
+    if hostname != "":
+        pref = DB_Wrapper.get_preferences_by_host_name(hostname)
+        if pref.to_send_email:
+            emails = DB_Wrapper.get_all_emails_of_users_from_host_name(hostname)
+            print(emails)
+            for email in emails:
+                EmailSending.send_attack_alert_email(email,"UNKNOWN CHECK LOG",hostname)
     return waf_handler.send_pref()
 def set_username(username:str):
     session['credentials_U'] = username

@@ -36,6 +36,9 @@ def send_email(destEmail:str,subject:str,bodyMsg:str):
     with smtplib.SMTP(smtp_server, port) as server:
         server.starttls()
         server.login(WAF_EMAIL, PASSWORD_FOR_APP)
+        print(type(WAF_EMAIL), WAF_EMAIL)
+        print(type(destEmail), destEmail)
+        print(type(subject), subject)
         server.sendmail(WAF_EMAIL, destEmail, msg.as_string())
 
 if __name__ == '__main__':
