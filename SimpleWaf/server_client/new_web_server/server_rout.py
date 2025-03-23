@@ -20,7 +20,20 @@ def get_file_content(file_path):
 @app.route('/')
 def open_screen():
     file_path = "../web_files/index.html"
-    return get_file_content(file_path)
+    content = get_file_content(file_path)
+    username,hostname = get_session_username(),get_session_host_name()
+    if username == UNLOGGED or hostname == UNLOGGED:
+        #if user did not log just pass the filecontent
+        return content
+    keyword = "Guest"
+    index = content.find(keyword)
+    if index == -1:
+        return content
+
+    partA = content[:index] +"\""+username+"\"<br>You Are Connected to The website: \""+hostname+"\"<br><a href=\"/logout\">Logout</a>"
+
+    partB = content[index+len(keyword):]
+    return partA + partB
 @app.route('/images/<img_name>')
 def get_img(img_name):
     img_name = img_name.replace("\\", "")
@@ -36,6 +49,7 @@ def get_img(img_name):
 def get_login_screen():
     file_path = "../web_files/login.html"
     return get_file_content(file_path)
+
 @app.route('/add_website', methods=['GET'])
 def get_add_website_screen():
     file_path = "../web_files/add_website.html"
@@ -66,7 +80,12 @@ def login_route():
         host_name = DB_Wrapper.get_host_name_for_user(username)
         set_host_name(host_name)
     return jsonify({"success": success, "message": message})
-
+@app.route('/logout')
+def logout():
+    #if the user will save the cookie, he will still be able to login with that cookie
+    session.pop("credentials_U", None)
+    session.pop("credentials_H", None)
+    return redirect(url_for("open_screen"))
 
 @app.route('/see_preferences', methods=['GET'])
 def see_preferences_route():
