@@ -107,6 +107,18 @@ def set_preferences_route():
     json_msg = request.get_json()
     success, message = logged_user_menu.set_preferences(json_msg, hostname)
     return jsonify({"success": success, "message": message})
+
+
+def get_admin_logs(log_data):
+    try:
+        log_entries = [json.loads(line) for line in log_data.split("\n") if line.strip()]
+        attack_types = [entry["attack type"] for entry in log_entries]
+        attack_counts = dict(Counter(attack_types))
+        hostnames = [entry["domain"] for entry in log_entries]
+        hostname_counts = dict(Counter(hostnames))
+        return render_template("admin_log_file.html",attack_counts=attack_counts,hostname_counts=hostname_counts, logs=log_entries)
+    except Exception as e:
+        return jsonify({"success": False, "log_data": "Error during phrasing"})
 def get_good_logs(log_data):
     try:
         log_entries = [json.loads(line) for line in log_data.split("\n") if line.strip()]
@@ -120,8 +132,8 @@ def see_all_log_files():
     #todo add check for admin user or something...
     log_data = waf_handler.get_log_file_of_admin_all_webs()
     if log_data == 'Error':
-        return log_data
-    return get_good_logs(log_data)
+        return "<h1>Log File is Empty<h1>"
+    return get_admin_logs(log_data)
 @app.route('/log_file', methods=['GET'])
 def see_log_file_route():
     hostname = get_session_host_name()
