@@ -141,6 +141,7 @@ def add_attacker():
     attacker_ip = request.args.get("ip","")
     free_date = request.args.get("free_date","")
     hostname = request.args.get("hostname","")
+    attack = request.args.get("attack","")
     if attacker_ip == "" or free_date == "":
         return "Error"
     #this is only to WAF...
@@ -157,8 +158,9 @@ def add_attacker():
         if pref.to_send_email:
             emails = DB_Wrapper.get_all_emails_of_users_from_host_name(hostname)
             print(emails)
-            for email in emails:
-                EmailSending.send_attack_alert_email(email,"UNKNOWN CHECK LOG",hostname)
+            for data in emails:
+                actual_email = data[0]
+                EmailSending.send_attack_alert_email(actual_email,"UNKNOWN CHECK LOG" if attack == "" else attack,hostname)
     return waf_handler.send_pref()
 def set_username(username:str):
     session['credentials_U'] = username

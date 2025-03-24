@@ -51,8 +51,8 @@ def get_prefs() -> bool:
     except Exception as e:
         return False
     return True
-def alert_attacker(ip_add:str,free_date:str,host_name_attacked:str):
-    url = f"http://{SERVER_IP}:{SERVER_PORT}/{alert_attacker_rout}?ip={ip_add}&free_date={free_date}&hostname={host_name_attacked}"
+def alert_attacker(ip_add:str,free_date:str,host_name_attacked:str, attack:str):
+    url = f"http://{SERVER_IP}:{SERVER_PORT}/{alert_attacker_rout}?ip={ip_add}&free_date={free_date}&hostname={host_name_attacked}&attack={attack}"
     headers_for_auth = {'Key': 'THIS IS WAF'}
     try:
         response = requests.get(url, headers=headers_for_auth)

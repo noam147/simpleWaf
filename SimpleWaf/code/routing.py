@@ -189,7 +189,7 @@ class WAFRequestHandler(RequestHandler):
             timeout = 1
             free_date: str = DB_Wrapper.calc_n_days_from_now(timeout)
             memory_handler.data_dict[memory_handler.ATTACKERS][ip_address] = free_date
-            ServerHandler.alert_attacker(ip_address, free_date, host_name)
+            ServerHandler.alert_attacker(ip_address, free_date, host_name, name_of_attack)
             #alert logger
             self.alert_to_logger(host_name, ip_attacker=ip_address, attack_method=name_of_attack,timeout=str(timeout))
             #abort request

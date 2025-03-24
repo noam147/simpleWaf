@@ -331,7 +331,7 @@ def get_all_emails_of_users_from_host_name(hostname:str) -> list:
     result = exec_command(command,args)
     if result == ERROR_WITH_DB_EXEC_COMMAND_CODE:
         return []
-    return result[0]
+    return result
 def insert_into_website_login(host_name:str, user_name:str, password:str, email:str) -> bool:
     """func will perform sign up for new user
     :return true if insertion went without problems

@@ -18,7 +18,7 @@ def send_attack_alert_email(destEmail:str,attack:str,host_name:str):
     host_name = host_name.replace("<","&lt;")
     msg = f"This is a msg from FireCastle WAF.\n"\
            f" we detected the attack {attack}, at your website at this address: {host_name}.\n"\
-           f"Go see the log file for specific details. https://wafWeb1304.com/logFile"
+           f"Go see the log file for specific details. https://wafWeb1304.com/logFile or http://127.0.0.1:47777/log_file"
     send_email(destEmail,"Attack detected!",msg)
 def send_email(destEmail:str,subject:str,bodyMsg:str):
     """sends email - general func"""
