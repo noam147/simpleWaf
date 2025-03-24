@@ -32,7 +32,10 @@
     </style>
 </head>
 <body>
-
+    <h2>Attack Type Distribution</h2>
+    <canvas id="attackChart"></canvas>
+	 <h2>Hostname Distribution</h2>
+	 <canvas id="hostnameChart"></canvas>
     <h1>Attack Logs</h1>
 
     <!-- Log Table -->
@@ -59,48 +62,63 @@
         </tbody>
     </table>
 
-    <h2>Attack Type Distribution</h2>
-    <canvas id="attackChart"></canvas>
-	 <h2>Hostname Distribution</h2>
-	 <canvas id="hostnameChart"></canvas>
+
     <script>
     // Attack Type Data
-    var attackData = {{ attack_counts | tojson }};
-    var attackLabels = Object.keys(attackData);
-    var attackValues = Object.values(attackData);
+    // Function to generate random colors
+function generateRandomColors(count) {
+    let colors = [];
+    for (let i = 0; i < count; i++) {
+        colors.push(`hsl(${Math.random() * 360}, 70%, 60%)`); // Generates random HSL colors
+    }
+    return colors;
+}
 
-    // Hostname Data (Fixing the missing variables)
-    var hostnameData = {{ hostname_counts | tojson }};
-    var hostnameLabels = Object.keys(hostnameData);
-    var hostnameValues = Object.values(hostnameData);
+// Attack Type Data
+var attackData = {{ attack_counts | tojson }};
+var attackLabels = Object.keys(attackData);
+var attackValues = Object.values(attackData);
+var colors = [
+    "#FF6384", "#36A2EB", "#FFCE56", "#4CAF50", "#9C27B0",
+    "#FF5733", "#C70039", "#00BCD4", "#8E44AD", "#F39C12",
+    "#2ECC71", "#E74C3C", "#3498DB", "#1ABC9C", "#D35400"
+];
 
-    var colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4CAF50', '#9C27B0', '#FF5733', '#C70039'];
+// Hostname Data
+var hostnameData = {{ hostname_counts | tojson }};
+var hostnameLabels = Object.keys(hostnameData);
+var hostnameValues = Object.values(hostnameData);
 
-    // Attack Type Pie Chart
-    var ctx = document.getElementById('attackChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'pie',
-        data: {
-            labels: attackLabels,
-            datasets: [{
-                data: attackValues,
-                backgroundColor: colors,
-            }]
-        }
-    });
+// Generate colors dynamically
+var attackColors = colors;
+var hostnameColors = generateRandomColors(hostnameLabels.length);
 
-    // Hostname Pie Chart
-    var ctx2 = document.getElementById('hostnameChart').getContext('2d');
-    new Chart(ctx2, {
-        type: 'pie',
-        data: {
-            labels: hostnameLabels,
-            datasets: [{
-                data: hostnameValues,
-                backgroundColor: colors,
-            }]
-        }
-    });
+// Attack Type Pie Chart
+var ctx = document.getElementById('attackChart').getContext('2d');
+new Chart(ctx, {
+    type: 'pie',
+    data: {
+        labels: attackLabels,
+        datasets: [{
+            data: attackValues,
+            backgroundColor: attackColors,
+        }]
+    }
+});
+
+// Hostname Pie Chart
+var ctx2 = document.getElementById('hostnameChart').getContext('2d');
+new Chart(ctx2, {
+    type: 'pie',
+    data: {
+        labels: hostnameLabels,
+        datasets: [{
+            data: hostnameValues,
+            backgroundColor: hostnameColors,
+        }]
+    }
+});
+
 </script>
 
 
