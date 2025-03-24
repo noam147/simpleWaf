@@ -13,9 +13,13 @@ def get_log_file_of_web(hostname) -> str:
     except Exception:
         return 'Error'
     return response.text if response.status_code == 200 else 'Error'
-
-    #todo - make it in gui good for client - in client side
-
+def get_log_file_of_admin_all_webs() ->str:
+    headers = {'ACTION': 'ADMIN_LOG'}
+    try:
+        response: requests.Response = requests.get(url_of_waf, headers=headers)
+    except Exception:
+        return 'Error'
+    return response.text if response.status_code == 200 else 'Error'
 def insert_attacker(ip_address,free_date):
     pass
 def check_if_msg_from_waf(msg:str) -> bool:

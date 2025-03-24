@@ -115,7 +115,13 @@ def get_good_logs(log_data):
         return render_template("log_file.html",attack_counts=attack_counts, logs=log_entries)
     except Exception as e:
         return jsonify({"success": False, "log_data": "Error during phrasing"})
-
+@app.route('/admin_log_file', methods=['GET'])
+def see_all_log_files():
+    #todo add check for admin user or something...
+    log_data = waf_handler.get_log_file_of_admin_all_webs()
+    if log_data == 'Error':
+        return log_data
+    return get_good_logs(log_data)
 @app.route('/log_file', methods=['GET'])
 def see_log_file_route():
     hostname = get_session_host_name()

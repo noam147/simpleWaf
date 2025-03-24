@@ -3,7 +3,7 @@ from tornado.httputil import HTTPServerRequest
 from tornado.httpclient import HTTPResponse,HTTPRequest
 from io import BytesIO
 import requests
-from logger import _OuterLogger
+from logger import _OuterLogger,_InnerLogger
 import memory_handler
 import json
 SERVER_IP = '127.0.0.1'
@@ -12,7 +12,7 @@ get_db_rout = "data_base"
 alert_attacker_rout = "attacker_alert"
 def check_if_msg_from_server(data:HTTPServerRequest) -> bool:
     #todo make better checking, now this is weak...
-    server_header = data.headers.get('WEB_NAME')
+    server_header = data.headers.get('ACTION')
     if server_header:
         return True
     return False
@@ -26,10 +26,14 @@ def get_req_with_code(data:HTTPServerRequest,body:str,code=200):
     )
 def handle_server_msg(data:HTTPServerRequest):
     action = data.headers.get('ACTION')
+    print(action)
     if not action:
         return get_req_with_code(data,'ERROR',403)
     if action == 'LOG':
         return send_log_file(data)
+    if action == 'ADMIN_LOG':
+        print("need to send log")
+        return send_admin_log_file(data)
     return get_req_with_code(data,'ERROR',404)
 def send_log_file(data:HTTPServerRequest):
     #with http probably. at server it will send one
@@ -60,3 +64,8 @@ def alert_attacker(ip_add:str,free_date:str,host_name_attacked:str, attack:str):
         pass
 
 
+def send_admin_log_file(data:HTTPServerRequest):
+    log_content = _InnerLogger().get_logged_data()
+    if not log_content:
+        return get_req_with_code(data, "Error", 402)
+    return get_req_with_code(data, log_content)
