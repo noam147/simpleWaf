@@ -1,7 +1,7 @@
 class Preferences_Items:
     def __init__(self,preferences:list):
         preferences:tuple = preferences[0]### get the actuall data tuple
-        if len(preferences) != 8:
+        if len(preferences) != 9:
             print(f"should not happen. pref of {preferences[0]} is corrupted")
         self.host_name:str = preferences[0]
         self.sql_level:int = preferences[1]

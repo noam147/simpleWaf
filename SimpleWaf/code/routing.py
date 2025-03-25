@@ -351,6 +351,7 @@ def make_app():
     ], **settings)
 def get_prefs_from_server():
     while True:
+        #todo activate this each 24H for update the prefs when the WAF runs forever..
         if ServerHandler.get_prefs():
             return
         print("activate Server")
