@@ -302,6 +302,18 @@ class WAFRequestHandler(RequestHandler):
                 self.connections[ip_address].remove(self)
             if not self.connections[ip_address]:
                 del self.connections[ip_address]
+
+    def add_samesite_defence(self, response:HTTPResponse):
+        if "Set-Cookie" in response.headers:
+            cookies = response.headers.get_list("Set-Cookie")  #if their are ,ultiple set cookie headers
+            new_cookies = []
+            for cookie in cookies:
+                if "SameSite=" not in cookie:  # if the web already definded its samesite, do not intrevene
+                    cookie += "; SameSite=Strict"
+                new_cookies.append(cookie)
+            response.headers.pop("Set-Cookie", None)
+            for new_cookie in new_cookies:
+                response.headers.add("Set-Cookie", new_cookie)
     def add_clickjacking_defence(self,response: HTTPResponse):
         ##### CLICKJACKING #####
         ### this is old header that sometimes does not work ###
@@ -311,6 +323,7 @@ class WAFRequestHandler(RequestHandler):
 
     def _write_response(self, response: HTTPResponse):
         self.add_clickjacking_defence(response)
+        self.add_samesite_defence(response)
         if not self._finished:
             for header, value in response.headers.get_all():
                 if header.lower() not in ("content-length", "transfer-encoding", "content-encoding"):
