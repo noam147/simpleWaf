@@ -9,7 +9,7 @@ import EmailSending
 app = Flask(__name__)
 app.secret_key = 'dragon_castle_key_secure'
 UNLOGGED = 'Guest'
-SERVER_PORT = 47777
+SERVER_PORT = 80
 
 #todo add gui pages
 def get_file_content(file_path):
@@ -190,4 +190,4 @@ def get_session_username():
 def get_session_host_name():
     return session.get("credentials_H", UNLOGGED)
 if __name__ == '__main__':
-    app.run(debug=True,port=SERVER_PORT,host="0.0.0.0")#todo change debug in production to false
+    app.run(debug=False,port=SERVER_PORT,host="0.0.0.0")#todo change debug in production to false
