@@ -299,6 +299,13 @@ def get_all_host_names():
             """
     result = exec_command(command)
     return result
+
+def get_if_ip_exist(ip_add:str) -> bool:
+    command = """
+    SELECT ip_address FROM websites_ip where host_name = %s"""
+    args = (ip_add,)
+    result = exec_command(command,args)
+    return len(result) == 1 and result != ERROR_WITH_DB_EXEC_COMMAND_CODE
 def get_if_host_name_exist(host_name:str) -> bool:
     command = """
     SELECT host_name FROM websites_ip where host_name = %s"""
