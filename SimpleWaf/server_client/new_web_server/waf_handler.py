@@ -13,6 +13,39 @@ def get_log_file_of_web(hostname) -> str:
     except Exception:
         return 'Error'
     return response.text if response.status_code == 200 else 'Error'
+def update_waf_when_new_web(hostname, ip_add):
+    headers = {'ACTION': 'NEW_WEB',
+               'WEB_NAME': hostname,
+               'IP':ip_add}
+    try:
+        response: requests.Response = requests.get(url_of_waf, headers=headers)
+    except Exception:
+        return 'Error'
+    return response.text if response.status_code == 200 else 'Error'
+
+
+def update_prefs(json_msg, hostname):
+    headers = {
+        'ACTION': 'UPDATE_WEB',
+        'WEB_NAME': hostname,
+        'sql_level': str(json_msg.get("sql_level", "")),
+        'xss_defence': str(json_msg.get("xss_defence", "")),
+        'hpp_defence': str(json_msg.get("hpp_defence", "")),
+        'file_attack_level': str(json_msg.get("file_attack_level", "")),
+        'to_send_email': str(json_msg.get("to_send_email", "")),
+        'os_level': str(json_msg.get("os_level", "")),
+        'port': str(json_msg.get("port", "")),
+        'isHttps': str(json_msg.get("isHttps", ""))
+    }
+
+    try:
+        response: requests.Response = requests.get(url_of_waf, headers=headers)
+    except Exception:
+        return 'Error'
+
+    return response.text if response.status_code == 200 else 'Error'
+
+
 def get_log_file_of_admin_all_webs() ->str:
     headers = {'ACTION': 'ADMIN_LOG'}
     try:
@@ -20,6 +53,8 @@ def get_log_file_of_admin_all_webs() ->str:
     except Exception:
         return 'Error'
     return response.text if response.status_code == 200 else 'Error'
+
+
 def insert_attacker(ip_address,free_date):
     pass
 def check_if_msg_from_waf(msg:str) -> bool:

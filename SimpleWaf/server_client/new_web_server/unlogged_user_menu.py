@@ -51,6 +51,8 @@ def add_website(json_msg) -> tuple[bool,str]:
     if DB_Wrapper.get_if_host_name_exist(host_name):
         return False, "host name already exist in WAF lists."
     DB_Wrapper.special_insert_or_update_website_ip(host_name, ip_add)
+    from waf_handler import update_waf_when_new_web
+    update_waf_when_new_web(host_name,ip_add)
     return True,""
 def login(json_msg) -> tuple[bool,str]:
     try:

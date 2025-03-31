@@ -20,6 +20,9 @@ def set_preferences(json_msg, host_name) -> tuple[bool,str]:
         pref_from_json.append(json_msg["isHttps"])
     except Exception as e:
         return False, "msg is corrupted, check json values"
+    from waf_handler import update_prefs
+    print("update prefs")
+    update_prefs(json_msg,host_name)
     DB_Wrapper.special_insert_or_update_preferences_table_preferences_table(Preferences_Items([pref_from_json]))
     return True, ""
 def change_details_of_user(json_msg):

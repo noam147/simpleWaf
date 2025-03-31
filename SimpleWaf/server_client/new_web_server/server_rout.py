@@ -9,7 +9,7 @@ import EmailSending
 app = Flask(__name__)
 app.secret_key = 'dragon_castle_key_secure'
 UNLOGGED = 'Guest'
-SERVER_PORT = 80
+SERVER_PORT = 47777
 
 #todo add gui pages
 def get_file_content(file_path):

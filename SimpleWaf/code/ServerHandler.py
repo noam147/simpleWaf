@@ -31,9 +31,13 @@ def handle_server_msg(data:HTTPServerRequest):
         return get_req_with_code(data,'ERROR',403)
     if action == 'LOG':
         return send_log_file(data)
-    if action == 'ADMIN_LOG':
+    elif action == 'ADMIN_LOG':
         print("need to send log")
         return send_admin_log_file(data)
+    elif action == 'NEW_WEB':
+        return add_new_web(data)
+    elif action == 'UPDATE_WEB':
+        return update_web(data)
     return get_req_with_code(data,'ERROR',404)
 def send_log_file(data:HTTPServerRequest):
     #with http probably. at server it will send one
@@ -46,6 +50,25 @@ def send_log_file(data:HTTPServerRequest):
     if not log_content:
         return get_req_with_code(data, "Error", 402)
     return get_req_with_code(data, log_content)
+def add_new_web(data:HTTPServerRequest):
+    host_name: str = data.headers.get('WEB_NAME')
+    ip:str = data.headers.get('IP')
+    if not host_name or not ip:
+        return get_req_with_code(data, "Error", 401)
+    #assumption - hostname is uniqe
+    memory_handler.data_dict[memory_handler.WEBSITES_IP][host_name] = ip
+def update_web(data: HTTPServerRequest):
+    host_name: str = data.headers.get('WEB_NAME')
+    sql_level = int(data.headers.get('sql_level'))
+    xss_defence:int = 1 if data.headers.get('xss_defence') else 0
+    hpp_defence:int = 1 if data.headers.get('hpp_defence') else 0
+    file_attack_level = int(data.headers.get('file_attack_level'))
+    to_send_email:int = 1 if data.headers.get('to_send_email') else 0
+    os_level = int(data.headers.get('os_level'))
+    port = int(data.headers.get('port'))
+    is_https:int = 1 if data.headers.get('isHttps') == "True" else 0
+    memory_handler.data_dict[memory_handler.PREFERENCES][host_name] = [host_name,sql_level,xss_defence,hpp_defence,file_attack_level,to_send_email,os_level,port,is_https]
+
 def get_prefs() -> bool:
     url = f"http://{SERVER_IP}:{SERVER_PORT}/{get_db_rout}"
     headers_for_auth = {'Key':'THIS IS WAF'}
