@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Application Firewall (WAF)</title>
+    <style>
+        body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column; /* Stack elements vertically */
+    align-items: center;
+    min-height: 100vh; /* Ensures full height */
+	
+}
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        p {
+            font-size: 18px;
+            color: #555;
+        }
+        .btn {
+            background-color: #007BFF;
+            color: white;
+            padding: 12px 25px;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            margin-top: 20px;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+		
+		.navbar {
+            background-color: #333;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            padding: 10px 0;
+        }
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            padding: 14px 20px;
+            display: block;
+        }
+        .navbar a:hover {
+            background-color: #575757;
+        }
+		.user-info {
+            color: black;
+            font-size: 18px;
+            font-weight: bold;
+            padding: 10px 20px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+   <div class="navbar">
+        <a href="/" target="_top">Home</a>
+        <a href="login" target="_top">Login</a>
+        <a href="add_website" target="_top">Add Website</a>
+        <a href="add_user" target="_top">Add User</a>
+        <a href="see_preferences" target="_top">See and Set Preferences</a>
+        <a href="log_file" target="_top">See Log File</a>
+    </div>
+	<div class="user-info">
+            Hello, Guest
+        </div>
+    <div class="container">
+        <h1>Web Application Firewall (WAF)</h1>
+        <p>Our Web Application Firewall (WAF) is protecting your service from various online threats, including SQL Injection, Cross-Site Scripting (XSS), and more. For secure access, please log in.</p>
+        <a href="/login" class="btn">Go to Login</a>
+    </div>
+	<img src="images/img_waf.png" width=250px height=250px>
+</body>
+</html>
